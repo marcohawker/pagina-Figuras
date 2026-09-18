@@ -8,6 +8,7 @@ export default defineConfig({
     react(),
     tailwindcss(),
   ],
+  base: './', // Ensures relative assets work on GitHub Pages (e.g. /pagina-Figuras/)
   server: {
     port: 5173,
     proxy: {
