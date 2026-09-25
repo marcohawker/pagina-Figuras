@@ -1,5 +1,6 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
+import { getThemePreset } from './ThemePresets';
 
 const AuthContext = createContext();
 
@@ -9,14 +10,23 @@ export function AuthProvider({ children }) {
     const saved = localStorage.getItem('actionvault_admin_user');
     return saved ? JSON.parse(saved) : null;
   });
+
   const [settings, setSettings] = useState({
-    showroomName: 'ActionVault',
-    showroomTagline: 'Exhibición & Venta de Figuras de Acción de Alta Gama',
+    showroomName: 'ACTION VAULT',
+    showroomTagline: 'High-End Action Figures & Collectibles Showroom',
+    heroTitle: '',
+    heroHighlightedWord: '',
+    heroDescription: '',
+    heroAnnouncementPill: '',
+    footerText: '',
+    accentColor: 'crimson',
     whatsappNumber: '+5491123456789',
+    whatsappTemplate: 'Hello! I am interested in "{name}" ({brand} - Scale {scale}) that I saw in your ActionVault showroom.',
     currency: 'USD'
   });
 
   const isAuthenticated = Boolean(token);
+  const activeTheme = getThemePreset(settings.accentColor || 'crimson');
 
   useEffect(() => {
     fetchSettings();
@@ -25,7 +35,9 @@ export function AuthProvider({ children }) {
   const fetchSettings = async () => {
     try {
       const data = await api.getSettings();
-      setSettings(prev => ({ ...prev, ...data }));
+      if (data) {
+        setSettings(prev => ({ ...prev, ...data }));
+      }
     } catch (e) {
       console.error('Error fetching settings:', e);
     }
@@ -56,6 +68,7 @@ export function AuthProvider({ children }) {
       isAuthenticated,
       settings,
       setSettings,
+      activeTheme,
       fetchSettings,
       login,
       logout

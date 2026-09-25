@@ -15,15 +15,20 @@ import {
   AlertTriangle,
   RotateCcw,
   Eye,
-  Zap
+  Zap,
+  Sliders,
+  Palette
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/LanguageContext';
 import FigureFormModal from './FigureFormModal';
-import SettingsModal from './SettingsModal';
+import ShowroomCustomizer from './ShowroomCustomizer';
 
 export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
-  const { token, settings } = useAuth();
+  const { token, settings, activeTheme } = useAuth();
+  const { t } = useTranslation();
+
   const [figures, setFigures] = useState([]);
   const [stats, setStats] = useState(null);
   const [searchTerm, setSearchTerm] = useState('');
@@ -32,7 +37,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
 
   const [editingFigure, setEditingFigure] = useState(null);
   const [isFormOpen, setIsFormOpen] = useState(false);
-  const [isSettingsOpen, setIsSettingsOpen] = useState(false);
+  const [isCustomizerOpen, setIsCustomizerOpen] = useState(false);
   const [deletingFigure, setDeletingFigure] = useState(null);
 
   useEffect(() => {
@@ -61,7 +66,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
       await api.updateFigure(id, { status: newStatus }, token);
       loadData();
     } catch (err) {
-      alert('Error al cambiar el estado: ' + err.message);
+      alert('Error: ' + err.message);
     }
   };
 
@@ -70,7 +75,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
       await api.updateFigure(figure.id, { featured: !figure.featured }, token);
       loadData();
     } catch (err) {
-      alert('Error al actualizar: ' + err.message);
+      alert('Error: ' + err.message);
     }
   };
 
@@ -81,17 +86,17 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
       setDeletingFigure(null);
       loadData();
     } catch (err) {
-      alert('Error al eliminar figura: ' + err.message);
+      alert('Error: ' + err.message);
     }
   };
 
   const handleResetDemo = async () => {
-    if (window.confirm('¿Estás seguro de restablecer el catálogo a las figuras de demostración originales?')) {
+    if (window.confirm('Are you sure you want to reset the catalog to original demo figures?')) {
       try {
         await api.resetDemoData(token);
         loadData();
       } catch (err) {
-        alert('Error al restaurar: ' + err.message);
+        alert('Error: ' + err.message);
       }
     }
   };
@@ -115,14 +120,14 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
       <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 bg-white p-6 rounded-[24px_6px_24px_6px] border-2 border-slate-900 shadow-[6px_6px_0px_rgba(15,23,42,0.9)] crosshair-pattern">
         <div>
           <div className="hud-tag inline-flex items-center space-x-2 px-3 py-1 bg-slate-900 text-rose-500 font-extrabold mb-2">
-            <Zap className="w-3.5 h-3.5 fill-rose-500" />
-            <span>CONTROL DE INVENTARIO & PUBLICACIONES</span>
+            <Zap className="w-3.5 h-3.5" style={{ fill: activeTheme.primaryColor, color: activeTheme.primaryColor }} />
+            <span>{t('admin_curator_badge')}</span>
           </div>
           <h1 className="font-heading text-2xl sm:text-3xl font-black text-slate-900 tracking-tight uppercase">
-            Panel del Curador
+            {t('admin_panel_title')}
           </h1>
           <p className="text-xs sm:text-sm text-slate-500 font-medium mt-0.5">
-            Crea, modifica o elimina publicaciones de figuras de acción, administra fotos y especificaciones.
+            {t('admin_panel_sub')}
           </p>
         </div>
 
@@ -133,28 +138,29 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
               setEditingFigure(null);
               setIsFormOpen(true);
             }}
-            className="btn-mechanical inline-flex items-center space-x-2 px-4 py-2.5 bg-rose-600 hover:bg-slate-900 text-white text-xs shadow-[3px_3px_0px_rgba(0,0,0,1)]"
+            className="btn-mechanical inline-flex items-center space-x-2 px-4 py-2.5 text-white text-xs shadow-[3px_3px_0px_rgba(0,0,0,1)]"
+            style={{ backgroundColor: activeTheme.primaryColor }}
           >
             <Plus className="w-4 h-4" />
-            <span>Nueva Publicación</span>
+            <span>{t('admin_btn_new_figure')}</span>
           </button>
 
           <button
-            onClick={() => setIsSettingsOpen(true)}
+            onClick={() => setIsCustomizerOpen(true)}
             className="btn-mechanical inline-flex items-center space-x-2 px-3.5 py-2.5 bg-white hover:bg-[#F0ECE4] text-slate-800 text-xs border-2 border-slate-900 shadow-[2px_2px_0px_rgba(0,0,0,1)]"
-            title="Configuración de la tienda y WhatsApp"
+            title={t('admin_btn_customizer')}
           >
-            <Settings className="w-4 h-4" />
-            <span className="hidden sm:inline">Ajustes</span>
+            <Palette className="w-4 h-4 text-slate-700" />
+            <span>{t('admin_btn_customizer')}</span>
           </button>
 
           <button
             onClick={handleResetDemo}
             className="btn-mechanical inline-flex items-center space-x-2 px-3.5 py-2.5 bg-[#FAF9F6] hover:bg-rose-50 text-slate-600 hover:text-rose-600 text-xs border border-[#D1C7BD]"
-            title="Restaurar catálogo inicial de figuras demo"
+            title={t('admin_btn_reset_demo')}
           >
             <RotateCcw className="w-4 h-4" />
-            <span className="hidden md:inline">Restaurar Demo</span>
+            <span className="hidden md:inline">{t('admin_btn_reset_demo')}</span>
           </button>
         </div>
       </div>
@@ -168,7 +174,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
               <Box className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-mono-tech text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Total Figuras</span>
+              <span className="font-mono-tech text-[9px] font-bold text-slate-400 uppercase tracking-widest block">{t('admin_stat_total')}</span>
               <span className="font-heading text-2xl font-black text-slate-900">{stats.total}</span>
             </div>
           </div>
@@ -178,7 +184,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
               <CheckCircle2 className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-mono-tech text-[9px] font-bold text-emerald-600 uppercase tracking-widest block">Disponibles</span>
+              <span className="font-mono-tech text-[9px] font-bold text-emerald-600 uppercase tracking-widest block">{t('admin_stat_available')}</span>
               <span className="font-heading text-2xl font-black text-emerald-600">{stats.available}</span>
             </div>
           </div>
@@ -188,7 +194,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
               <Clock className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-mono-tech text-[9px] font-bold text-amber-600 uppercase tracking-widest block">Reservadas</span>
+              <span className="font-mono-tech text-[9px] font-bold text-amber-600 uppercase tracking-widest block">{t('admin_stat_reserved')}</span>
               <span className="font-heading text-2xl font-black text-amber-600">{stats.reserved}</span>
             </div>
           </div>
@@ -198,17 +204,17 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
               <Eye className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-mono-tech text-[9px] font-bold text-blue-600 uppercase tracking-widest block">Exhibición</span>
+              <span className="font-mono-tech text-[9px] font-bold text-blue-600 uppercase tracking-widest block">{t('admin_stat_display')}</span>
               <span className="font-heading text-2xl font-black text-blue-600">{stats.displayOnly}</span>
             </div>
           </div>
 
           <div className="p-4 rounded-[14px_4px_14px_4px] bg-white border-2 border-slate-900 shadow-sm flex items-center space-x-3 col-span-2 lg:col-span-1">
-            <div className="p-2.5 rounded-[8px_2px_8px_2px] bg-slate-900 text-rose-500">
+            <div className="p-2.5 rounded-[8px_2px_8px_2px] bg-slate-900 text-white" style={{ color: activeTheme.primaryColor }}>
               <DollarSign className="w-5 h-5" />
             </div>
             <div>
-              <span className="font-mono-tech text-[9px] font-bold text-slate-400 uppercase tracking-widest block">Valor Total</span>
+              <span className="font-mono-tech text-[9px] font-bold text-slate-400 uppercase tracking-widest block">{t('admin_stat_value')}</span>
               <span className="font-heading text-xl font-black text-slate-900">${stats.totalInventoryValue} <span className="font-mono-tech text-[10px] text-slate-500">{settings.currency || 'USD'}</span></span>
             </div>
           </div>
@@ -227,7 +233,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
               type="text"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              placeholder="Filtrar por nombre, personaje, marca..."
+              placeholder={t('admin_filter_placeholder')}
               className="w-full pl-10 pr-4 py-2 text-xs font-bold bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] focus:outline-none focus:border-slate-900 font-heading"
             />
           </div>
@@ -238,11 +244,11 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
               onChange={(e) => setStatusFilter(e.target.value)}
               className="text-xs font-bold font-heading bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] px-3 py-2 text-slate-800"
             >
-              <option value="all">Todos los estados</option>
-              <option value="Disponible">🟢 Solo Disponibles</option>
-              <option value="Reservado">🟡 Reservados</option>
-              <option value="Vendido">⚪ Vendidos</option>
-              <option value="En Exhibición">🔵 En Exhibición</option>
+              <option value="all">{t('filter_status_all')}</option>
+              <option value="Disponible">{t('filter_status_available')}</option>
+              <option value="Reservado">{t('filter_status_reserved')}</option>
+              <option value="Vendido">{t('filter_status_sold')}</option>
+              <option value="En Exhibición">{t('filter_status_display')}</option>
             </select>
           </div>
         </div>
@@ -252,13 +258,13 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
           <table className="w-full text-left border-collapse">
             <thead>
               <tr className="bg-[#FAF9F6] border-y-2 border-slate-900 text-[10px] font-mono-tech font-extrabold uppercase tracking-widest text-slate-600">
-                <th className="py-3 px-4">FIGURA & FOTOS</th>
-                <th className="py-3 px-4">UNIVERSO / MARCA</th>
-                <th className="py-3 px-4">ESCALA & ALTURA</th>
-                <th className="py-3 px-4">PRECIO</th>
-                <th className="py-3 px-4">ESTADO</th>
-                <th className="py-3 px-4 text-center">DESTACADA</th>
-                <th className="py-3 px-4 text-right">ACCIONES</th>
+                <th className="py-3 px-4">{t('admin_col_media')}</th>
+                <th className="py-3 px-4">{t('admin_col_universe_brand')}</th>
+                <th className="py-3 px-4">{t('admin_col_specs')}</th>
+                <th className="py-3 px-4">{t('admin_col_price')}</th>
+                <th className="py-3 px-4">{t('admin_col_status')}</th>
+                <th className="py-3 px-4 text-center">{t('admin_col_featured')}</th>
+                <th className="py-3 px-4 text-right">{t('admin_col_actions')}</th>
               </tr>
             </thead>
             <tbody className="divide-y-2 divide-[#F0EBE1] text-xs">
@@ -266,13 +272,13 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
                 filteredFigures.map((fig) => {
                   const mainImg = fig.images?.[fig.primaryImageIndex || 0] || fig.images?.[0];
                   return (
-                    <tr key={fig.id} className="hover:bg-rose-50/30 transition-colors">
+                    <tr key={fig.id} className="hover:bg-slate-50 transition-colors">
                       
                       {/* Media & Name */}
                       <td className="py-3 px-4">
                         <div className="flex items-center space-x-3">
-                          <div className="relative w-14 h-14 rounded-[8px_2px_8px_2px] figure-pedestal border-2 border-[#E2DDD5] p-1 flex-shrink-0 flex items-center justify-center overflow-hidden">
-                            <img src={mainImg} alt={fig.name} className="w-full h-full object-contain relative z-10" />
+                          <div className="relative w-14 h-14 rounded-[8px_2px_8px_2px] bg-gradient-to-b from-[#FAF9F6] to-[#EBE4DA] border-2 border-[#E2DDD5] p-1 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                            <img src={mainImg} alt={fig.name} className="max-h-full max-w-full object-contain" />
                             {fig.images?.length > 1 && (
                               <span className="absolute bottom-0 right-0 bg-slate-900 text-[9px] text-white px-1 font-mono-tech font-bold z-20">
                                 {fig.images.length}
@@ -304,16 +310,16 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
 
                       {/* Scale / Height */}
                       <td className="py-3 px-4">
-                        <div className="font-bold text-slate-800">Escala {fig.scale}</div>
+                        <div className="font-bold text-slate-800">{t('modal_spec_scale')} {fig.scale}</div>
                         <div className="font-mono-tech text-[10px] text-slate-400">{fig.height || 'N/A'}</div>
                       </td>
 
                       {/* Price */}
                       <td className="py-3 px-4 font-heading font-black text-slate-900 whitespace-nowrap">
                         {fig.price > 0 ? (
-                          <span>${fig.price} <span className="font-mono-tech text-[10px] text-slate-500">{fig.currency || 'USD'}</span></span>
+                          <span>${fig.price} <span className="font-mono-tech text-[10px] text-slate-500">{fig.currency || settings.currency || 'USD'}</span></span>
                         ) : (
-                          <span className="text-slate-400 font-mono-tech text-[10px]">CONSULTAR</span>
+                          <span className="text-slate-400 font-mono-tech text-[10px]">{t('card_inquire')}</span>
                         )}
                       </td>
 
@@ -332,10 +338,10 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
                               : 'bg-blue-50 text-blue-800 border-blue-500'
                           }`}
                         >
-                          <option value="Disponible">🟢 Disponible</option>
-                          <option value="En Exhibición">🔵 En Exhibición</option>
-                          <option value="Reservado">🟡 Reservado</option>
-                          <option value="Vendido">⚪ Vendido</option>
+                          <option value="Disponible">{t('filter_status_available')}</option>
+                          <option value="En Exhibición">{t('filter_status_display')}</option>
+                          <option value="Reservado">{t('filter_status_reserved')}</option>
+                          <option value="Vendido">{t('filter_status_sold')}</option>
                         </select>
                       </td>
 
@@ -348,7 +354,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
                               ? 'bg-amber-400 text-slate-900 border-slate-900 shadow-sm'
                               : 'text-slate-300 hover:text-slate-700 border-transparent hover:border-slate-300'
                           }`}
-                          title={fig.featured ? 'Destacada en portada' : 'Hacer destacada'}
+                          title={fig.featured ? t('modal_featured_star') : 'Set featured'}
                         >
                           <Star className={`w-4 h-4 ${fig.featured ? 'fill-slate-900' : ''}`} />
                         </button>
@@ -363,7 +369,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
                               setIsFormOpen(true);
                             }}
                             className="p-1.5 rounded-[6px_2px_6px_2px] text-slate-800 bg-[#F0ECE4] hover:bg-slate-900 hover:text-white border border-[#DDD5C9] transition-colors"
-                            title="Editar publicación"
+                            title={t('admin_action_edit')}
                           >
                             <Edit3 className="w-4 h-4" />
                           </button>
@@ -371,7 +377,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
                           <button
                             onClick={() => setDeletingFigure(fig)}
                             className="p-1.5 rounded-[6px_2px_6px_2px] text-rose-600 bg-rose-50 hover:bg-rose-600 hover:text-white border border-rose-200 transition-colors"
-                            title="Eliminar publicación"
+                            title={t('admin_action_delete')}
                           >
                             <Trash2 className="w-4 h-4" />
                           </button>
@@ -384,7 +390,7 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
               ) : (
                 <tr>
                   <td colSpan={7} className="py-12 text-center text-slate-400 font-mono-tech">
-                    [ NO SE ENCONTRARON PUBLICACIONES ]
+                    {t('table_no_results')}
                   </td>
                 </tr>
               )}
@@ -405,10 +411,10 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
         onSaved={loadData}
       />
 
-      {/* Settings Modal */}
-      <SettingsModal
-        isOpen={isSettingsOpen}
-        onClose={() => setIsSettingsOpen(false)}
+      {/* Showroom Customizer Modal */}
+      <ShowroomCustomizer
+        isOpen={isCustomizerOpen}
+        onClose={() => setIsCustomizerOpen(false)}
         onSaved={loadData}
       />
 
@@ -420,9 +426,11 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
               <AlertTriangle className="w-6 h-6" />
             </div>
             <div>
-              <h3 className="font-heading text-base font-black text-slate-900 uppercase">¿Eliminar publicación?</h3>
+              <h3 className="font-heading text-base font-black text-slate-900 uppercase">
+                {t('admin_delete_confirm_title')}
+              </h3>
               <p className="text-xs text-slate-500 mt-1">
-                Estás por eliminar <b>"{deletingFigure.name}"</b>. Esta acción no se puede deshacer.
+                {t('admin_delete_confirm_desc', { name: deletingFigure.name })}
               </p>
             </div>
             <div className="flex items-center justify-center space-x-2 pt-2">
@@ -430,13 +438,13 @@ export default function AdminDashboard({ onSelectFigure, onCatalogUpdated }) {
                 onClick={() => setDeletingFigure(null)}
                 className="btn-mechanical px-4 py-2 text-xs bg-[#F0ECE4] text-slate-800 border border-[#DDD5C9]"
               >
-                Cancelar
+                {t('admin_btn_cancel')}
               </button>
               <button
                 onClick={confirmDelete}
                 className="btn-mechanical px-4 py-2 text-xs text-white bg-rose-600 hover:bg-rose-700 shadow-[2px_2px_0px_rgba(0,0,0,1)]"
               >
-                Sí, Eliminar
+                {t('admin_btn_confirm_delete')}
               </button>
             </div>
           </div>

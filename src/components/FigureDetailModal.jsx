@@ -21,9 +21,11 @@ import {
 } from 'lucide-react';
 import { StatusBadge } from './FigureCard';
 import { useAuth } from '../context/AuthContext';
+import { useTranslation } from '../i18n/LanguageContext';
 
 export default function FigureDetailModal({ figure, onClose }) {
-  const { settings } = useAuth();
+  const { settings, activeTheme } = useAuth();
+  const { t } = useTranslation();
   const [selectedPhotoIndex, setSelectedPhotoIndex] = useState(figure.primaryImageIndex || 0);
   const [isLightboxOpen, setIsLightboxOpen] = useState(false);
   const [copiedLink, setCopiedLink] = useState(false);
@@ -60,10 +62,15 @@ export default function FigureDetailModal({ figure, onClose }) {
   const whatsappUrl = () => {
     if (!settings.whatsappNumber) return '#';
     const cleanNumber = settings.whatsappNumber.replace(/[^0-9]/g, '');
-    const text = encodeURIComponent(
-      `¡Hola! Estoy interesado en la figura "${figure.name}" (${figure.brand} - Escala ${figure.scale}) que vi en su showroom ActionVault. ¿Me brindas más información?`
-    );
-    return `https://wa.me/${cleanNumber}?text=${text}`;
+    
+    // Use custom template if available or standard localized fallback
+    const rawTemplate = settings.whatsappTemplate || 'Hello! I am interested in "{name}" ({brand} - Scale {scale}) that I saw in your showroom.';
+    const message = rawTemplate
+      .replace(/\{name\}/g, figure.name)
+      .replace(/\{brand\}/g, figure.brand || 'Collector')
+      .replace(/\{scale\}/g, figure.scale || '1/6');
+
+    return `https://wa.me/${cleanNumber}?text=${encodeURIComponent(message)}`;
   };
 
   return (
@@ -88,14 +95,14 @@ export default function FigureDetailModal({ figure, onClose }) {
             <button
               onClick={handleCopyLink}
               className="p-2 rounded-[6px_2px_6px_2px] text-slate-600 hover:text-slate-900 hover:bg-[#F0ECE4] border border-[#DDD5C9] transition-colors"
-              title="Copiar enlace de esta figura"
+              title="Share / Copy Link"
             >
               {copiedLink ? <Check className="w-4 h-4 text-emerald-600" /> : <Share2 className="w-4 h-4" />}
             </button>
             <button
               onClick={onClose}
               className="p-2 rounded-[6px_2px_6px_2px] text-slate-400 hover:text-rose-600 hover:bg-rose-50 border border-transparent hover:border-rose-200 transition-colors"
-              title="Cerrar (Esc)"
+              title="Close (Esc)"
             >
               <X className="w-5 h-5" />
             </button>
@@ -112,7 +119,7 @@ export default function FigureDetailModal({ figure, onClose }) {
             <div className="lg:col-span-7 space-y-4">
               
               {/* Primary Large Image Viewport */}
-              <div className="relative w-full h-80 sm:h-[420px] rounded-[20px_6px_20px_6px] figure-pedestal border-2 border-slate-900 p-6 flex items-center justify-center overflow-hidden group shadow-md">
+              <div className="relative w-full h-80 sm:h-[420px] rounded-[20px_6px_20px_6px] bg-gradient-to-b from-[#FAF9F6] via-[#F5EFEB] to-[#EBE4DA] border-2 border-slate-900 p-6 flex items-center justify-center overflow-hidden group shadow-md">
                 
                 {/* Status Badge in gallery */}
                 <div className="absolute top-4 left-4 z-10">
@@ -123,7 +130,7 @@ export default function FigureDetailModal({ figure, onClose }) {
                 <button
                   onClick={() => setIsLightboxOpen(true)}
                   className="absolute top-4 right-4 z-10 p-2 rounded-[6px_2px_6px_2px] bg-white text-slate-800 border-2 border-slate-900 shadow-[2px_2px_0px_rgba(0,0,0,1)] transition-all opacity-0 group-hover:opacity-100"
-                  title="Ampliar en pantalla completa"
+                  title="Fullscreen Zoom"
                 >
                   <Maximize2 className="w-4 h-4" />
                 </button>
@@ -131,8 +138,8 @@ export default function FigureDetailModal({ figure, onClose }) {
                 {/* Main Image */}
                 <img
                   src={images[selectedPhotoIndex] || images[0]}
-                  alt={`${figure.name} - Vista ${selectedPhotoIndex + 1}`}
-                  className="w-full h-full object-contain drop-shadow-[0_20px_20px_rgba(0,0,0,0.3)] transition-all duration-300 transform group-hover:scale-105 cursor-zoom-in relative z-10"
+                  alt={`${figure.name} - View ${selectedPhotoIndex + 1}`}
+                  className="max-h-full max-w-full object-contain drop-shadow-[0_20px_20px_rgba(0,0,0,0.25)] transition-all duration-300 transform group-hover:scale-105 cursor-zoom-in"
                   onClick={() => setIsLightboxOpen(true)}
                 />
 
@@ -145,7 +152,7 @@ export default function FigureDetailModal({ figure, onClose }) {
                         setSelectedPhotoIndex((prev) => (prev - 1 + images.length) % images.length);
                       }}
                       className="absolute left-3 top-1/2 -translate-y-1/2 p-2.5 rounded-[8px_2px_8px_2px] bg-white/95 text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_rgba(0,0,0,1)] opacity-90 hover:opacity-100 transition-all z-20"
-                      aria-label="Foto anterior"
+                      aria-label="Previous photo"
                     >
                       <ChevronLeft className="w-5 h-5" />
                     </button>
@@ -155,7 +162,7 @@ export default function FigureDetailModal({ figure, onClose }) {
                         setSelectedPhotoIndex((prev) => (prev + 1) % images.length);
                       }}
                       className="absolute right-3 top-1/2 -translate-y-1/2 p-2.5 rounded-[8px_2px_8px_2px] bg-white/95 text-slate-900 border-2 border-slate-900 shadow-[2px_2px_0px_rgba(0,0,0,1)] opacity-90 hover:opacity-100 transition-all z-20"
-                      aria-label="Foto siguiente"
+                      aria-label="Next photo"
                     >
                       <ChevronRight className="w-5 h-5" />
                     </button>
@@ -164,7 +171,7 @@ export default function FigureDetailModal({ figure, onClose }) {
 
                 {/* Angle counter pill */}
                 <div className="absolute bottom-3 right-4 px-3 py-1 rounded-[6px_2px_6px_2px] bg-slate-900 text-white font-mono-tech text-[10px] font-bold shadow-md z-20">
-                  FOTO {selectedPhotoIndex + 1} / {images.length}
+                  {t('modal_photo_counter')} {selectedPhotoIndex + 1} / {images.length}
                 </div>
               </div>
 
@@ -175,13 +182,13 @@ export default function FigureDetailModal({ figure, onClose }) {
                     <button
                       key={idx}
                       onClick={() => setSelectedPhotoIndex(idx)}
-                      className={`relative w-20 h-20 rounded-[10px_3px_10px_3px] overflow-hidden flex-shrink-0 figure-pedestal border-2 p-1 transition-all ${
+                      className={`relative w-20 h-20 rounded-[10px_3px_10px_3px] overflow-hidden flex-shrink-0 bg-gradient-to-b from-[#FAF9F6] to-[#EBE4DA] border-2 p-1 transition-all ${
                         idx === selectedPhotoIndex
-                          ? 'border-rose-600 shadow-[3px_3px_0px_rgba(225,29,72,1)] scale-105'
+                          ? 'border-slate-900 shadow-[3px_3px_0px_rgba(0,0,0,1)] scale-105'
                           : 'border-[#DCD3C7] hover:border-slate-800 opacity-70 hover:opacity-100'
                       }`}
                     >
-                      <img src={img} alt={`Miniatura ${idx + 1}`} className="w-full h-full object-contain relative z-10" />
+                      <img src={img} alt={`Thumbnail ${idx + 1}`} className="max-h-full max-w-full object-contain mx-auto" />
                     </button>
                   ))}
                 </div>
@@ -191,8 +198,10 @@ export default function FigureDetailModal({ figure, onClose }) {
               <div className="p-4 rounded-[14px_4px_14px_4px] bg-white border-2 border-[#E2DDD5] flex items-start space-x-3 shadow-sm">
                 <Award className="w-5 h-5 text-amber-500 flex-shrink-0 mt-0.5" />
                 <div className="text-xs text-slate-600 space-y-0.5">
-                  <span className="font-heading font-extrabold text-slate-900 block uppercase">Inspección de Coleccionista Certificada</span>
-                  <span>Fotografías tomadas bajo iluminación de estudio profesional de la pieza exacta.</span>
+                  <span className="font-heading font-extrabold text-slate-900 block uppercase">
+                    {t('modal_certified_inspection')}
+                  </span>
+                  <span>{t('modal_certified_desc')}</span>
                 </div>
               </div>
 
@@ -203,11 +212,11 @@ export default function FigureDetailModal({ figure, onClose }) {
               
               {/* Figure Title & Line */}
               <div>
-                <div className="flex items-center space-x-2 text-xs font-mono-tech font-bold text-rose-600 uppercase tracking-wider mb-1">
-                  <span>{figure.line || 'EDICIÓN OFICIAL'}</span>
+                <div className="flex items-center space-x-2 text-xs font-mono-tech font-bold uppercase tracking-wider mb-1" style={{ color: activeTheme.primaryColor }}>
+                  <span>{figure.line || t('modal_official_edition')}</span>
                   {figure.featured && (
                     <span className="hud-tag px-2 py-0.5 bg-amber-400 text-slate-900 border border-slate-900 font-extrabold">
-                      ★ DESTACADA
+                      {t('modal_featured_star')}
                     </span>
                   )}
                 </div>
@@ -218,7 +227,7 @@ export default function FigureDetailModal({ figure, onClose }) {
 
                 {figure.character && (
                   <p className="text-sm font-bold text-slate-600 mt-1 font-heading">
-                    PERSONAJE: <span className="text-slate-900 font-black">{figure.character}</span>
+                    {t('modal_character_label')} <span className="text-slate-900 font-black">{figure.character}</span>
                   </p>
                 )}
               </div>
@@ -228,14 +237,14 @@ export default function FigureDetailModal({ figure, onClose }) {
                 <div className="flex items-center justify-between">
                   <div>
                     <span className="font-mono-tech text-[10px] font-bold uppercase tracking-wider text-slate-400 block">
-                      {figure.status === 'En Exhibición' ? 'VALOR ESTIMADO DE COLECCIÓN' : 'PRECIO DE VENTA'}
+                      {figure.status === 'En Exhibición' ? t('modal_collection_val') : t('modal_sale_price')}
                     </span>
                     {figure.price > 0 ? (
                       <div className="font-heading text-3xl font-black text-slate-900">
-                        ${figure.price} <span className="font-mono-tech text-sm font-bold text-slate-500">{figure.currency || 'USD'}</span>
+                        ${figure.price} <span className="font-mono-tech text-sm font-bold text-slate-500">{figure.currency || settings.currency || 'USD'}</span>
                       </div>
                     ) : (
-                      <div className="font-heading text-xl font-black text-slate-800 uppercase">Consultar Disponibilidad</div>
+                      <div className="font-heading text-xl font-black text-slate-800 uppercase">{t('modal_inquire_availability')}</div>
                     )}
                   </div>
                   <StatusBadge status={figure.status} />
@@ -250,7 +259,7 @@ export default function FigureDetailModal({ figure, onClose }) {
                     className="btn-mechanical w-full flex items-center justify-center space-x-2.5 py-3.5 px-4 bg-emerald-600 hover:bg-emerald-700 text-white font-extrabold text-xs shadow-[3px_3px_0px_rgba(0,0,0,1)] border-2 border-slate-900 transition-all hover:scale-[1.01]"
                   >
                     <Phone className="w-4 h-4" />
-                    <span>CONSULTAR POR WHATSAPP</span>
+                    <span>{t('modal_whatsapp_btn')}</span>
                   </a>
                 )}
               </div>
@@ -259,39 +268,39 @@ export default function FigureDetailModal({ figure, onClose }) {
               <div className="space-y-3">
                 <h3 className="font-mono-tech text-xs font-bold uppercase tracking-wider text-slate-500 flex items-center space-x-1.5">
                   <Info className="w-4 h-4 text-slate-900" />
-                  <span>[ FICHA TÉCNICA OFICIAL // SPECS ]</span>
+                  <span>{t('modal_specs_title')}</span>
                 </h3>
 
                 <div className="grid grid-cols-2 gap-2 text-xs">
                   
                   <div className="p-3 bg-white rounded-[10px_3px_10px_3px] border-2 border-[#E2DDD5]">
-                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">Fabricante</span>
-                    <span className="font-heading font-extrabold text-slate-900">{figure.brand || 'No especificado'}</span>
+                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">{t('modal_spec_manufacturer')}</span>
+                    <span className="font-heading font-extrabold text-slate-900">{figure.brand || 'N/A'}</span>
                   </div>
 
                   <div className="p-3 bg-white rounded-[10px_3px_10px_3px] border-2 border-[#E2DDD5]">
-                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">Escala</span>
+                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">{t('modal_spec_scale')}</span>
                     <span className="font-heading font-extrabold text-slate-900">{figure.scale || '1/6'}</span>
                   </div>
 
                   <div className="p-3 bg-white rounded-[10px_3px_10px_3px] border-2 border-[#E2DDD5]">
-                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">Altura Total</span>
-                    <span className="font-heading font-extrabold text-slate-900">{figure.height || 'Consultar'}</span>
+                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">{t('modal_spec_height')}</span>
+                    <span className="font-heading font-extrabold text-slate-900">{figure.height || 'N/A'}</span>
                   </div>
 
                   <div className="p-3 bg-white rounded-[10px_3px_10px_3px] border-2 border-[#E2DDD5]">
-                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">Año de Lanzamiento</span>
+                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">{t('modal_spec_year')}</span>
                     <span className="font-heading font-extrabold text-slate-900">{figure.year || '2023'}</span>
                   </div>
 
                   <div className="p-3 bg-white rounded-[10px_3px_10px_3px] border-2 border-[#E2DDD5]">
-                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">Materiales</span>
+                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">{t('modal_spec_material')}</span>
                     <span className="font-heading font-extrabold text-slate-900 truncate block" title={figure.material}>{figure.material || 'PVC / ABS'}</span>
                   </div>
 
                   <div className="p-3 bg-white rounded-[10px_3px_10px_3px] border-2 border-[#E2DDD5]">
-                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">Condición de Caja</span>
-                    <span className="font-heading font-extrabold text-slate-900 truncate block" title={figure.condition}>{figure.condition || 'Impecable'}</span>
+                    <span className="font-mono-tech text-slate-400 block text-[9px] uppercase font-bold">{t('modal_spec_condition')}</span>
+                    <span className="font-heading font-extrabold text-slate-900 truncate block" title={figure.condition}>{figure.condition || 'MIB'}</span>
                   </div>
 
                 </div>
@@ -307,19 +316,19 @@ export default function FigureDetailModal({ figure, onClose }) {
             {/* Description Column */}
             <div className="lg:col-span-7 space-y-3">
               <h3 className="font-heading text-xs font-black uppercase tracking-wider text-slate-900">
-                Descripción & Reseña de la Pieza
+                {t('modal_description_title')}
               </h3>
               <p className="text-xs sm:text-sm text-slate-600 leading-relaxed whitespace-pre-line font-medium bg-white p-5 rounded-[14px_4px_14px_4px] border-2 border-[#E2DDD5]">
-                {figure.description || 'Sin descripción adicional disponible.'}
+                {figure.description || t('modal_no_description')}
               </p>
             </div>
 
             {/* Included Accessories Column */}
             <div className="lg:col-span-5 space-y-3">
               <h3 className="font-heading text-xs font-black uppercase tracking-wider text-slate-900 flex items-center space-x-2">
-                <span>Accesorios & Partes Extras</span>
+                <span>{t('modal_accessories_title')}</span>
                 {figure.accessories && figure.accessories.length > 0 && (
-                  <span className="hud-tag px-2 py-0.5 bg-rose-600 text-white font-extrabold">
+                  <span className="hud-tag px-2 py-0.5 bg-slate-900 text-white font-extrabold">
                     {figure.accessories.length}
                   </span>
                 )}
@@ -336,7 +345,7 @@ export default function FigureDetailModal({ figure, onClose }) {
                 </ul>
               ) : (
                 <p className="text-xs text-slate-400 italic bg-white p-3 rounded-[8px_2px_8px_2px] border border-[#E2DDD5]">
-                  Esta publicación no tiene lista de accesorios detallada.
+                  {t('modal_no_accessories')}
                 </p>
               )}
             </div>
@@ -348,14 +357,14 @@ export default function FigureDetailModal({ figure, onClose }) {
         {/* Modal Footer */}
         <div className="px-6 py-4 bg-white border-t-2 border-slate-900 flex items-center justify-between">
           <span className="font-mono-tech text-xs text-slate-500 font-bold">
-            SERIAL // <span className="text-slate-900">{figure.id}</span>
+            {t('modal_serial_label')} <span className="text-slate-900">{figure.id}</span>
           </span>
 
           <button
             onClick={onClose}
-            className="btn-mechanical px-5 py-2 text-xs bg-slate-900 hover:bg-rose-600 text-white"
+            className="btn-mechanical px-5 py-2 text-xs bg-slate-900 hover:bg-slate-800 text-white"
           >
-            Cerrar Ficha
+            {t('modal_close_btn')}
           </button>
         </div>
 

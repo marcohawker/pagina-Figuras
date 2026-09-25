@@ -1,27 +1,31 @@
 import React, { useState } from 'react';
 import { Sparkles, Eye, ShieldCheck, Box, Ruler, CheckCircle2, ChevronRight } from 'lucide-react';
+import { useTranslation } from '../i18n/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export function StatusBadge({ status }) {
+  const { t } = useTranslation();
+
   switch (status) {
     case 'Disponible':
       return (
         <span className="hud-tag inline-flex items-center space-x-1.5 px-2.5 py-1 bg-emerald-50 text-emerald-800 border border-emerald-300 font-extrabold shadow-sm">
           <span className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse"></span>
-          <span>DISPONIBLE</span>
+          <span>{t('status_available')}</span>
         </span>
       );
     case 'Reservado':
       return (
         <span className="hud-tag inline-flex items-center space-x-1.5 px-2.5 py-1 bg-amber-50 text-amber-800 border border-amber-300 font-extrabold shadow-sm">
           <span className="w-2 h-2 rounded-full bg-amber-500"></span>
-          <span>RESERVADO</span>
+          <span>{t('status_reserved')}</span>
         </span>
       );
     case 'Vendido':
       return (
         <span className="hud-tag inline-flex items-center space-x-1.5 px-2.5 py-1 bg-slate-100 text-slate-600 border border-slate-300 font-bold">
           <span className="w-2 h-2 rounded-full bg-slate-400"></span>
-          <span>VENDIDO</span>
+          <span>{t('status_sold')}</span>
         </span>
       );
     case 'En Exhibición':
@@ -29,13 +33,16 @@ export function StatusBadge({ status }) {
       return (
         <span className="hud-tag inline-flex items-center space-x-1.5 px-2.5 py-1 bg-blue-50 text-blue-800 border border-blue-300 font-extrabold shadow-sm">
           <span className="w-2 h-2 rounded-full bg-blue-500"></span>
-          <span>EXHIBICIÓN</span>
+          <span>{t('status_display')}</span>
         </span>
       );
   }
 }
 
 export default function FigureCard({ figure, onSelect }) {
+  const { t } = useTranslation();
+  const { settings, activeTheme } = useAuth();
+
   const images = figure.images && figure.images.length > 0 
     ? figure.images 
     : ['https://images.unsplash.com/photo-1607604276583-eef5d076aa5f?w=800&auto=format&fit=crop&q=80'];
@@ -51,7 +58,7 @@ export default function FigureCard({ figure, onSelect }) {
 
         <div className="flex items-center space-x-1.5">
           {figure.featured && (
-            <span className="inline-flex items-center p-1 rounded-[4px] bg-amber-400 text-slate-900 border border-slate-900" title="Figura Destacada">
+            <span className="inline-flex items-center p-1 rounded-[4px] bg-amber-400 text-slate-900 border border-slate-900" title={t('modal_featured_star')}>
               <Sparkles className="w-3.5 h-3.5 fill-slate-900" />
             </span>
           )}
@@ -89,9 +96,10 @@ export default function FigureCard({ figure, onSelect }) {
                   setActiveImageIndex(idx);
                 }}
                 className={`h-2 transition-all rounded-[1px] ${
-                  idx === activeImageIndex ? 'w-4 bg-rose-600' : 'w-2 bg-[#D1C7BD] hover:bg-slate-700'
+                  idx === activeImageIndex ? 'w-4' : 'w-2 bg-[#D1C7BD] hover:bg-slate-700'
                 }`}
-                title={`Ver ángulo ${idx + 1}`}
+                style={idx === activeImageIndex ? { backgroundColor: activeTheme.primaryColor } : {}}
+                title={`${t('card_photo_angle')} ${idx + 1}`}
               />
             ))}
           </div>
@@ -100,8 +108,8 @@ export default function FigureCard({ figure, onSelect }) {
         {/* Hover Action Overlay */}
         <div className="absolute inset-0 bg-slate-900/25 backdrop-blur-[1px] opacity-0 group-hover/img:opacity-100 transition-opacity duration-200 flex items-center justify-center">
           <span className="btn-mechanical inline-flex items-center space-x-2 text-xs text-white bg-slate-900 px-4 py-2 border border-white/40 shadow-lg">
-            <Eye className="w-3.5 h-3.5 text-rose-400" />
-            <span>Ver Ficha & Galería</span>
+            <Eye className="w-3.5 h-3.5" style={{ color: activeTheme.primaryColor }} />
+            <span>{t('card_view_gallery')}</span>
           </span>
         </div>
       </div>
@@ -112,7 +120,9 @@ export default function FigureCard({ figure, onSelect }) {
         <div>
           {/* Brand & Franchise line */}
           <div className="flex items-center justify-between text-xs font-bold font-mono-tech mb-1">
-            <span className="text-rose-600 uppercase tracking-wider">{figure.brand || 'Coleccionable'}</span>
+            <span className="uppercase tracking-wider" style={{ color: activeTheme.primaryColor }}>
+              {figure.brand || 'Coleccionable'}
+            </span>
             <span className="text-slate-400 font-medium lowercase tracking-normal">[{figure.franchise}]</span>
           </div>
 
@@ -128,7 +138,7 @@ export default function FigureCard({ figure, onSelect }) {
           {/* Character subtitle */}
           {figure.character && (
             <p className="text-xs text-slate-500 font-medium line-clamp-1 mt-0.5">
-              Personaje: <span className="text-slate-800 font-bold">{figure.character}</span>
+              {t('card_character')}: <span className="text-slate-800 font-bold">{figure.character}</span>
             </p>
           )}
 
@@ -137,7 +147,7 @@ export default function FigureCard({ figure, onSelect }) {
             {figure.height && (
               <div className="p-1.5 bg-[#FAF9F6] rounded-[6px_2px_6px_2px] border border-[#E8E2D8] flex items-center space-x-1.5">
                 <Ruler className="w-3.5 h-3.5 text-slate-400 flex-shrink-0" />
-                <span className="truncate font-mono-tech font-bold text-[10px]">ALT: {figure.height}</span>
+                <span className="truncate font-mono-tech font-bold text-[10px]">{t('card_alt')}: {figure.height}</span>
               </div>
             )}
             {figure.condition && (
@@ -149,7 +159,7 @@ export default function FigureCard({ figure, onSelect }) {
             {figure.accessories && figure.accessories.length > 0 && (
               <div className="p-1.5 bg-emerald-50/70 rounded-[6px_2px_6px_2px] border border-emerald-200 flex items-center space-x-1.5 col-span-2 text-emerald-800 font-bold font-mono-tech text-[10px]">
                 <CheckCircle2 className="w-3.5 h-3.5 text-emerald-600 flex-shrink-0" />
-                <span className="truncate">INCLUYE {figure.accessories.length} ACCESORIOS VERIFICADOS</span>
+                <span className="truncate">{figure.accessories.length} {t('card_verified_accessories')}</span>
               </div>
             )}
           </div>
@@ -159,22 +169,22 @@ export default function FigureCard({ figure, onSelect }) {
         <div className="pt-3 border-t-2 border-[#F0EBE1] flex items-center justify-between">
           <div>
             <span className="font-mono-tech text-[9px] text-slate-400 uppercase font-bold tracking-widest block">
-              {figure.status === 'En Exhibición' ? 'VALOR ESTIMADO' : 'PRECIO'}
+              {figure.status === 'En Exhibición' ? t('card_estimated_value') : t('card_price')}
             </span>
             {figure.price > 0 ? (
               <div className="font-heading text-lg font-black text-slate-900">
-                ${figure.price} <span className="font-mono-tech text-xs font-bold text-slate-500">{figure.currency || 'USD'}</span>
+                ${figure.price} <span className="font-mono-tech text-xs font-bold text-slate-500">{figure.currency || settings.currency || 'USD'}</span>
               </div>
             ) : (
-              <div className="font-heading text-xs font-bold text-slate-600 uppercase tracking-wide">Consultar</div>
+              <div className="font-heading text-xs font-bold text-slate-600 uppercase tracking-wide">{t('card_inquire')}</div>
             )}
           </div>
 
           <button
             onClick={() => onSelect(figure)}
-            className="btn-mechanical inline-flex items-center space-x-1.5 px-3.5 py-2 text-xs bg-slate-900 hover:bg-rose-600 text-white transition-colors"
+            className="btn-mechanical inline-flex items-center space-x-1.5 px-3.5 py-2 text-xs bg-slate-900 hover:bg-slate-800 text-white transition-colors"
           >
-            <span>Detalles</span>
+            <span>{t('card_details_btn')}</span>
             <ChevronRight className="w-3.5 h-3.5" />
           </button>
         </div>

@@ -17,6 +17,7 @@ import {
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
+import { useTranslation } from '../../i18n/LanguageContext';
 import { FRANCHISES } from '../HeroBanner';
 import { BRANDS } from '../FilterBarData';
 
@@ -26,7 +27,8 @@ export default function FigureFormModal({
   onClose, 
   onSaved 
 }) {
-  const { token, settings } = useAuth();
+  const { token, settings, activeTheme } = useAuth();
+  const { t } = useTranslation();
   const fileInputRef = useRef(null);
 
   const [formData, setFormData] = useState({
@@ -92,7 +94,7 @@ export default function FigureFormModal({
         images: [...prev.images, ...uploadedUrls]
       }));
     } catch (err) {
-      setError(err.message || 'Error al subir fotos');
+      setError(err.message || 'Error uploading photos');
     } finally {
       setIsUploading(false);
       if (fileInputRef.current) fileInputRef.current.value = '';
@@ -131,12 +133,12 @@ export default function FigureFormModal({
   const handleSubmit = async (e) => {
     e.preventDefault();
     if (!formData.name.trim()) {
-      setError('Por favor ingresa el nombre de la figura');
+      setError('Please enter figure name');
       return;
     }
 
     if (formData.images.length === 0) {
-      setError('Por favor agrega al menos una foto para la publicación');
+      setError('Please add at least one image');
       return;
     }
 
@@ -153,14 +155,14 @@ export default function FigureFormModal({
       if (onSaved) onSaved();
       onClose();
     } catch (err) {
-      setError(err.message || 'Error al guardar la publicación');
+      setError(err.message || 'Error saving listing');
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/70 backdrop-blur-md overflow-y-auto animate-fadeIn">
+    <div className="fixed inset-0 z-50 flex items-center justify-center p-3 sm:p-6 bg-slate-950/75 backdrop-blur-md overflow-y-auto animate-fadeIn">
       
       <div className="relative w-full max-w-4xl bg-white rounded-[28px_8px_28px_8px] shadow-[10px_10px_0px_rgba(15,23,42,1)] border-2 border-slate-900 my-auto max-h-[92vh] flex flex-col overflow-hidden crosshair-pattern">
         
@@ -168,10 +170,10 @@ export default function FigureFormModal({
         <div className="flex items-center justify-between px-6 py-4 border-b-2 border-slate-900 bg-[#FAF9F6]">
           <div>
             <h2 className="font-heading text-lg font-black text-slate-900 uppercase">
-              {figure ? '✏️ Modificar Registro de Figura' : '✨ Nueva Pieza de Colección'}
+              {figure ? t('form_title_edit') : t('form_title_new')}
             </h2>
             <p className="font-mono-tech text-[10px] text-slate-500 font-bold">
-              [ FICHA TÉCNICA // ARCHIVO DE EXHIBICIÓN ]
+              {t('form_sub')}
             </p>
           </div>
           <button
@@ -196,20 +198,20 @@ export default function FigureFormModal({
           <div className="space-y-4 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
             <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center space-x-1.5 border-b-2 border-[#F0EBE1] pb-2">
               <FileText className="w-4 h-4" />
-              <span>01 // INFORMACIÓN PRINCIPAL</span>
+              <span>{t('form_sec1_title')}</span>
             </h3>
 
             <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
               
               <div className="md:col-span-2">
                 <label className="block font-bold text-slate-800 mb-1 font-heading">
-                  Nombre Oficial del Modelo *
+                  {t('form_label_title')}
                 </label>
                 <input
                   type="text"
                   value={formData.name}
                   onChange={(e) => handleChange('name', e.target.value)}
-                  placeholder="Ej: Iron Man Mark LXXXV (Diecast) - Battle Damaged Edition"
+                  placeholder="e.g. Iron Man Mark LXXXV (Diecast) - Battle Damaged Edition"
                   className="w-full px-3.5 py-2.5 text-xs font-bold bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] focus:outline-none focus:border-slate-900"
                   required
                 />
@@ -217,33 +219,33 @@ export default function FigureFormModal({
 
               <div>
                 <label className="block font-bold text-slate-800 mb-1 font-heading">
-                  Personaje
+                  {t('form_label_character')}
                 </label>
                 <input
                   type="text"
                   value={formData.character}
                   onChange={(e) => handleChange('character', e.target.value)}
-                  placeholder="Ej: Tony Stark / Iron Man"
+                  placeholder="e.g. Tony Stark / Iron Man"
                   className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] focus:outline-none focus:border-slate-900 font-bold"
                 />
               </div>
 
               <div>
                 <label className="block font-bold text-slate-800 mb-1 font-heading">
-                  Línea de Colección
+                  {t('form_label_line')}
                 </label>
                 <input
                   type="text"
                   value={formData.line}
                   onChange={(e) => handleChange('line', e.target.value)}
-                  placeholder="Ej: Movie Masterpiece Series"
+                  placeholder="e.g. Movie Masterpiece Series"
                   className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] focus:outline-none focus:border-slate-900 font-bold"
                 />
               </div>
 
               <div>
                 <label className="block font-bold text-slate-800 mb-1 font-heading">
-                  Franquicia / Universo *
+                  {t('form_label_franchise')}
                 </label>
                 <select
                   value={formData.franchise}
@@ -258,7 +260,7 @@ export default function FigureFormModal({
 
               <div>
                 <label className="block font-bold text-slate-800 mb-1 font-heading">
-                  Fabricante / Marca *
+                  {t('form_label_brand')}
                 </label>
                 <select
                   value={formData.brand}
@@ -278,12 +280,12 @@ export default function FigureFormModal({
           <div className="space-y-4 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
             <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center space-x-1.5 border-b-2 border-[#F0EBE1] pb-2">
               <Box className="w-4 h-4" />
-              <span>02 // ESPECIFICACIONES TÉCNICAS</span>
+              <span>{t('form_sec2_title')}</span>
             </h3>
 
             <div className="grid grid-cols-2 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block font-bold text-slate-800 mb-1 font-heading">Escala</label>
+                <label className="block font-bold text-slate-800 mb-1 font-heading">{t('form_label_scale')}</label>
                 <select
                   value={formData.scale}
                   onChange={(e) => handleChange('scale', e.target.value)}
@@ -300,40 +302,40 @@ export default function FigureFormModal({
               </div>
 
               <div>
-                <label className="block font-bold text-slate-800 mb-1 font-heading">Altura Exacta</label>
+                <label className="block font-bold text-slate-800 mb-1 font-heading">{t('form_label_height')}</label>
                 <input
                   type="text"
                   value={formData.height}
                   onChange={(e) => handleChange('height', e.target.value)}
-                  placeholder="Ej: 32.5 cm"
+                  placeholder="e.g. 32.5 cm"
                   className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-bold"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-800 mb-1 font-heading">Año de Lanzamiento</label>
+                <label className="block font-bold text-slate-800 mb-1 font-heading">{t('form_label_year')}</label>
                 <input
                   type="text"
                   value={formData.year}
                   onChange={(e) => handleChange('year', e.target.value)}
-                  placeholder="Ej: 2023"
+                  placeholder="e.g. 2023"
                   className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-bold"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-800 mb-1 font-heading">Materiales</label>
+                <label className="block font-bold text-slate-800 mb-1 font-heading">{t('form_label_materials')}</label>
                 <input
                   type="text"
                   value={formData.material}
                   onChange={(e) => handleChange('material', e.target.value)}
-                  placeholder="Ej: Diecast, PVC, Tela"
+                  placeholder="e.g. Diecast, PVC, Fabric"
                   className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-bold"
                 />
               </div>
 
               <div className="sm:col-span-2">
-                <label className="block font-bold text-slate-800 mb-1 font-heading">Condición de Caja</label>
+                <label className="block font-bold text-slate-800 mb-1 font-heading">{t('form_label_condition')}</label>
                 <select
                   value={formData.condition}
                   onChange={(e) => handleChange('condition', e.target.value)}
@@ -352,43 +354,43 @@ export default function FigureFormModal({
           <div className="space-y-4 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
             <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center space-x-1.5 border-b-2 border-[#F0EBE1] pb-2">
               <Layers className="w-4 h-4" />
-              <span>03 // DISPONIBILIDAD & VALOR</span>
+              <span>{t('form_sec3_title')}</span>
             </h3>
 
             <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
               <div>
-                <label className="block font-bold text-slate-800 mb-1 font-heading">Estado de Publicación *</label>
+                <label className="block font-bold text-slate-800 mb-1 font-heading">{t('form_label_status')}</label>
                 <select
                   value={formData.status}
                   onChange={(e) => handleChange('status', e.target.value)}
                   className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-bold text-slate-800"
                 >
-                  <option value="Disponible">🟢 Disponible para Venta</option>
-                  <option value="En Exhibición">🔵 Solo en Exhibición</option>
-                  <option value="Reservado">🟡 Reservado</option>
-                  <option value="Vendido">⚪ Vendido</option>
+                  <option value="Disponible">🟢 {t('filter_status_available')}</option>
+                  <option value="En Exhibición">🔵 {t('filter_status_display')}</option>
+                  <option value="Reservado">🟡 {t('filter_status_reserved')}</option>
+                  <option value="Vendido">⚪ {t('filter_status_sold')}</option>
                 </select>
               </div>
 
               <div>
-                <label className="block font-bold text-slate-800 mb-1 font-heading">Precio</label>
+                <label className="block font-bold text-slate-800 mb-1 font-heading">{t('form_label_price')}</label>
                 <input
                   type="number"
                   value={formData.price}
                   onChange={(e) => handleChange('price', e.target.value)}
-                  placeholder="Ej: 350"
+                  placeholder="e.g. 350"
                   className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-black font-heading text-sm"
                 />
               </div>
 
               <div>
-                <label className="block font-bold text-slate-800 mb-1 font-heading">Moneda</label>
+                <label className="block font-bold text-slate-800 mb-1 font-heading">{t('form_label_currency')}</label>
                 <input
                   type="text"
                   value={formData.currency}
                   onChange={(e) => handleChange('currency', e.target.value)}
-                  placeholder="USD, ARS, EUR..."
-                  className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-mono-tech font-bold uppercase"
+                  placeholder="USD, EUR, GBP, ARS"
+                  className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-mono-tech font-bold uppercase focus:outline-none focus:border-slate-900"
                 />
               </div>
             </div>
@@ -404,7 +406,7 @@ export default function FigureFormModal({
               />
               <label htmlFor="featured-check" className="text-xs font-black text-slate-900 cursor-pointer flex items-center space-x-1.5 font-heading uppercase">
                 <Sparkles className="w-4 h-4 text-amber-500 fill-amber-400" />
-                <span>Destacar en Portada (Spotlight Hero)</span>
+                <span>{t('form_label_featured_check')}</span>
               </label>
             </div>
           </div>
@@ -414,10 +416,10 @@ export default function FigureFormModal({
             <div className="flex items-center justify-between border-b-2 border-[#F0EBE1] pb-2">
               <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center space-x-1.5">
                 <ImageIcon className="w-4 h-4" />
-                <span>04 // GALERÍA DE FOTOS ({formData.images.length})</span>
+                <span>{t('form_sec4_title')} ({formData.images.length})</span>
               </h3>
               <span className="font-mono-tech text-[10px] text-slate-500 font-bold">
-                [ ESTRELLA = PORTADA PRINCIPAL ]
+                [ ★ = {t('form_cover_badge')} ]
               </span>
             </div>
 
@@ -436,24 +438,24 @@ export default function FigureFormModal({
                   accept="image/*"
                   className="hidden"
                 />
-                <UploadCloud className="w-6 h-6 text-rose-600" />
-                <span className="font-heading font-black text-slate-900 uppercase">Subir desde la computadora</span>
-                <span className="font-mono-tech text-[9px] text-slate-500">JPG, PNG, WEBP (hasta 10MB)</span>
-                {isUploading && <span className="font-mono-tech text-rose-600 font-bold animate-pulse">Subiendo fotos...</span>}
+                <UploadCloud className="w-6 h-6" style={{ color: activeTheme.primaryColor }} />
+                <span className="font-heading font-black text-slate-900 uppercase">{t('form_upload_drag')}</span>
+                <span className="font-mono-tech text-[9px] text-slate-500">{t('form_upload_sub')}</span>
+                {isUploading && <span className="font-mono-tech font-bold animate-pulse text-blue-600">{t('form_uploading')}</span>}
               </div>
 
               {/* Add by URL */}
               <div className="p-3 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[14px_4px_14px_4px] flex flex-col justify-center space-y-2">
                 <span className="font-heading font-bold text-slate-700 flex items-center space-x-1">
                   <Link className="w-3.5 h-3.5 text-slate-400" />
-                  <span>O agregar foto por enlace web:</span>
+                  <span>{t('form_upload_url_label')}</span>
                 </span>
                 <div className="flex items-center space-x-2">
                   <input
                     type="url"
                     value={urlInput}
                     onChange={(e) => setUrlInput(e.target.value)}
-                    placeholder="https://ejemplo.com/foto.jpg"
+                    placeholder="https://example.com/photo.jpg"
                     className="flex-1 px-3 py-2 text-xs bg-white border-2 border-[#E2DDD5] rounded-[6px_2px_6px_2px]"
                   />
                   <button
@@ -461,7 +463,7 @@ export default function FigureFormModal({
                     onClick={handleAddImageUrl}
                     className="btn-mechanical px-3 py-2 bg-slate-900 text-white text-xs"
                   >
-                    Añadir
+                    {t('form_upload_url_btn')}
                   </button>
                 </div>
               </div>
@@ -476,16 +478,16 @@ export default function FigureFormModal({
                   return (
                     <div 
                       key={idx}
-                      className={`relative group rounded-[10px_3px_10px_3px] overflow-hidden border-2 figure-pedestal p-1 h-32 flex items-center justify-center ${
+                      className={`relative group rounded-[10px_3px_10px_3px] overflow-hidden border-2 bg-gradient-to-b from-[#FAF9F6] to-[#EBE4DA] p-1 h-32 flex items-center justify-center ${
                         isPrimary ? 'border-amber-500 shadow-[3px_3px_0px_rgba(245,158,11,1)]' : 'border-[#E2DDD5]'
                       }`}
                     >
-                      <img src={img} alt={`Foto ${idx + 1}`} className="w-full h-full object-contain relative z-10" />
+                      <img src={img} alt={`Photo ${idx + 1}`} className="max-h-full max-w-full object-contain relative z-10" />
 
                       {isPrimary && (
                         <div className="absolute top-1.5 left-1.5 px-2 py-0.5 rounded-[4px_1px_4px_1px] bg-amber-400 text-slate-900 font-mono-tech text-[9px] font-extrabold shadow flex items-center space-x-1 z-20">
                           <Star className="w-3 h-3 fill-slate-900" />
-                          <span>PORTADA</span>
+                          <span>{t('form_cover_badge')}</span>
                         </div>
                       )}
 
@@ -495,7 +497,7 @@ export default function FigureFormModal({
                             type="button"
                             onClick={() => handleSetPrimaryImage(idx)}
                             className="p-1.5 rounded-[4px] bg-amber-400 text-slate-900 shadow"
-                            title="Hacer foto de portada"
+                            title="Set as Cover"
                           >
                             <Star className="w-4 h-4 fill-slate-900" />
                           </button>
@@ -504,7 +506,7 @@ export default function FigureFormModal({
                           type="button"
                           onClick={() => handleRemoveImage(idx)}
                           className="p-1.5 rounded-[4px] bg-rose-600 text-white shadow"
-                          title="Eliminar foto"
+                          title="Delete photo"
                         >
                           <Trash2 className="w-4 h-4" />
                         </button>
@@ -520,7 +522,7 @@ export default function FigureFormModal({
           <div className="space-y-3 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
             <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center space-x-1.5 border-b-2 border-[#F0EBE1] pb-2">
               <Sparkles className="w-4 h-4" />
-              <span>05 // ACCESORIOS INCLUIDOS</span>
+              <span>{t('form_sec5_title')}</span>
             </h3>
 
             <div className="flex items-center space-x-2">
@@ -534,7 +536,7 @@ export default function FigureFormModal({
                     handleAddAccessory();
                   }
                 }}
-                placeholder="Ej: 3 pares de manos, Sable de luz LED, Base con logo..."
+                placeholder={t('form_acc_placeholder')}
                 className="flex-1 px-3.5 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-bold"
               />
               <button
@@ -543,7 +545,7 @@ export default function FigureFormModal({
                 className="btn-mechanical px-4 py-2 bg-slate-900 text-white text-xs flex items-center space-x-1"
               >
                 <Plus className="w-3.5 h-3.5" />
-                <span>Añadir</span>
+                <span>{t('form_acc_add_btn')}</span>
               </button>
             </div>
 
@@ -572,13 +574,13 @@ export default function FigureFormModal({
           {/* Section 6: Description */}
           <div className="space-y-2 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
             <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 border-b-2 border-[#F0EBE1] pb-2">
-              06 // DESCRIPCIÓN & RESEÑA
+              {t('form_sec6_title')}
             </h3>
             <textarea
               rows={4}
               value={formData.description}
               onChange={(e) => handleChange('description', e.target.value)}
-              placeholder="Detalles de pintura, acabados, articulaciones, origen..."
+              placeholder={t('form_desc_placeholder')}
               className="w-full px-3.5 py-2.5 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] focus:outline-none focus:border-slate-900 leading-relaxed font-medium"
             ></textarea>
           </div>
@@ -592,7 +594,7 @@ export default function FigureFormModal({
             onClick={onClose}
             className="btn-mechanical px-4 py-2 text-xs bg-[#F0ECE4] text-slate-800 border border-[#DDD5C9]"
           >
-            Cancelar
+            {t('admin_btn_cancel')}
           </button>
 
           <button
@@ -600,9 +602,10 @@ export default function FigureFormModal({
             onClick={handleSubmit}
             disabled={isSubmitting || isUploading}
             className="btn-mechanical flex items-center space-x-2 px-6 py-2.5 bg-rose-600 hover:bg-slate-900 text-white text-xs shadow-[3px_3px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-50"
+            style={{ backgroundColor: activeTheme.primaryColor }}
           >
             <Save className="w-4 h-4" />
-            <span>{isSubmitting ? 'Guardando...' : figure ? 'Guardar Cambios' : 'Publicar Figura'}</span>
+            <span>{isSubmitting ? t('form_saving') : figure ? t('form_btn_save') : t('form_btn_publish')}</span>
           </button>
         </div>
 

@@ -1,8 +1,13 @@
 import React from 'react';
 import { Eye, Ruler, Box, Sparkles, ChevronRight } from 'lucide-react';
 import { StatusBadge } from './FigureCard';
+import { useTranslation } from '../i18n/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function FigureListView({ figures, onSelect }) {
+  const { t } = useTranslation();
+  const { settings, activeTheme } = useAuth();
+
   if (figures.length === 0) return null;
 
   return (
@@ -11,13 +16,13 @@ export default function FigureListView({ figures, onSelect }) {
         <table className="w-full text-left border-collapse">
           <thead>
             <tr className="bg-[#FAF9F6] border-b-2 border-slate-900 text-[10px] font-mono-tech font-extrabold uppercase tracking-widest text-slate-600">
-              <th className="py-4 px-4">FIGURA / MODELO</th>
-              <th className="py-4 px-4">UNIVERSO</th>
-              <th className="py-4 px-4">FABRICANTE & ESCALA</th>
-              <th className="py-4 px-4">CONDICIÓN</th>
-              <th className="py-4 px-4">ESTADO</th>
-              <th className="py-4 px-4">PRECIO</th>
-              <th className="py-4 px-4 text-right">ACCIÓN</th>
+              <th className="py-4 px-4">{t('table_figure')}</th>
+              <th className="py-4 px-4">{t('table_universe')}</th>
+              <th className="py-4 px-4">{t('table_brand_scale')}</th>
+              <th className="py-4 px-4">{t('table_condition')}</th>
+              <th className="py-4 px-4">{t('table_status')}</th>
+              <th className="py-4 px-4">{t('table_price')}</th>
+              <th className="py-4 px-4 text-right">{t('table_action')}</th>
             </tr>
           </thead>
           <tbody className="divide-y-2 divide-[#F0EBE1] text-xs">
@@ -27,16 +32,16 @@ export default function FigureListView({ figures, onSelect }) {
                 <tr 
                   key={figure.id}
                   onClick={() => onSelect(figure)}
-                  className="hover:bg-rose-50/40 cursor-pointer transition-colors group"
+                  className="hover:bg-slate-50 cursor-pointer transition-colors group"
                 >
                   {/* Media & Title */}
                   <td className="py-3.5 px-4">
                     <div className="flex items-center space-x-3.5">
-                      <div className="w-14 h-14 rounded-[8px_2px_8px_2px] figure-pedestal border-2 border-[#E2DDD5] p-1 flex-shrink-0 flex items-center justify-center overflow-hidden">
+                      <div className="w-14 h-14 rounded-[8px_2px_8px_2px] bg-gradient-to-b from-[#FAF9F6] to-[#EBE4DA] border-2 border-[#E2DDD5] p-1 flex-shrink-0 flex items-center justify-center overflow-hidden">
                         <img 
                           src={mainImg} 
                           alt={figure.name} 
-                          className="w-full h-full object-contain group-hover:scale-110 transition-transform duration-300 relative z-10"
+                          className="max-h-full max-w-full object-contain group-hover:scale-110 transition-transform duration-300"
                         />
                       </div>
                       <div>
@@ -67,7 +72,7 @@ export default function FigureListView({ figures, onSelect }) {
                   {/* Brand & Scale */}
                   <td className="py-3.5 px-4">
                     <div className="font-heading font-black text-slate-900">{figure.brand}</div>
-                    <div className="font-mono-tech text-[10px] text-slate-500 font-bold">ESCALA {figure.scale} • {figure.height || 'N/A'}</div>
+                    <div className="font-mono-tech text-[10px] text-slate-500 font-bold">{t('modal_spec_scale')} {figure.scale} • {figure.height || 'N/A'}</div>
                   </td>
 
                   {/* Condition */}
@@ -86,9 +91,9 @@ export default function FigureListView({ figures, onSelect }) {
                   {/* Price */}
                   <td className="py-3.5 px-4 font-heading font-black text-slate-900 whitespace-nowrap text-sm">
                     {figure.price > 0 ? (
-                      <span>${figure.price} <span className="font-mono-tech text-xs font-bold text-slate-500">{figure.currency || 'USD'}</span></span>
+                      <span>${figure.price} <span className="font-mono-tech text-xs font-bold text-slate-500">{figure.currency || settings.currency || 'USD'}</span></span>
                     ) : (
-                      <span className="font-mono-tech text-xs font-bold text-slate-500 uppercase">Consultar</span>
+                      <span className="font-mono-tech text-xs font-bold text-slate-500 uppercase">{t('card_inquire')}</span>
                     )}
                   </td>
 
@@ -99,9 +104,9 @@ export default function FigureListView({ figures, onSelect }) {
                         e.stopPropagation();
                         onSelect(figure);
                       }}
-                      className="btn-mechanical inline-flex items-center space-x-1 px-3 py-1.5 text-xs bg-slate-900 hover:bg-rose-600 text-white transition-all"
+                      className="btn-mechanical inline-flex items-center space-x-1 px-3 py-1.5 text-xs bg-slate-900 hover:bg-slate-800 text-white transition-all"
                     >
-                      <span>Ver</span>
+                      <span>{t('table_view_btn')}</span>
                       <ChevronRight className="w-3.5 h-3.5" />
                     </button>
                   </td>

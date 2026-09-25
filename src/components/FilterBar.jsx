@@ -1,7 +1,9 @@
 import React from 'react';
-import { Search, SlidersHorizontal, LayoutGrid, List, X, RotateCcw, Filter } from 'lucide-react';
-import { FRANCHISES } from './HeroBanner';
-import { BRANDS, SCALES, STATUSES } from './FilterBarData';
+import { Search, SlidersHorizontal, LayoutGrid, List, X, RotateCcw } from 'lucide-react';
+import { FRANCHISE_KEYS } from './HeroBanner';
+import { BRANDS, SCALES } from './FilterBarData';
+import { useTranslation } from '../i18n/LanguageContext';
+import { useAuth } from '../context/AuthContext';
 
 export default function FilterBar({
   filters,
@@ -11,6 +13,9 @@ export default function FilterBar({
   setViewMode,
   totalResults
 }) {
+  const { t } = useTranslation();
+  const { activeTheme } = useAuth();
+
   const isFiltered = 
     Boolean(filters.search) || 
     (filters.franchise && filters.franchise !== 'all') || 
@@ -32,7 +37,7 @@ export default function FilterBar({
               type="text"
               value={filters.search || ''}
               onChange={(e) => onFilterChange('search', e.target.value)}
-              placeholder="Buscar personaje, modelo, línea (ej: Tony Stark, Batman, Goku, Hot Toys)..."
+              placeholder={t('filter_search_placeholder')}
               className="w-full pl-10 pr-10 py-2.5 text-xs font-semibold bg-white border-2 border-[#E2DDD5] rounded-[10px_3px_10px_3px] focus:outline-none focus:border-slate-900 focus:shadow-[2px_2px_0px_rgba(15,23,42,1)] transition-all font-heading"
             />
             {filters.search && (
@@ -54,7 +59,7 @@ export default function FilterBar({
               onChange={(e) => onFilterChange('brand', e.target.value)}
               className="text-xs font-bold font-heading bg-white border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-900 shadow-sm cursor-pointer"
             >
-              <option value="all">🏷️ Marca / Fabricante (Todos)</option>
+              <option value="all">{t('filter_brand_all')}</option>
               {BRANDS.slice(1).map((brand) => (
                 <option key={brand} value={brand}>{brand}</option>
               ))}
@@ -66,7 +71,7 @@ export default function FilterBar({
               onChange={(e) => onFilterChange('scale', e.target.value)}
               className="text-xs font-bold font-heading bg-white border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-900 shadow-sm cursor-pointer"
             >
-              <option value="all">📏 Escala (Todas)</option>
+              <option value="all">{t('filter_scale_all')}</option>
               <option value="1/6">1/6 (~30 cm)</option>
               <option value="1/12">1/12 (~15 cm)</option>
               <option value="1/4">1/4 (~45 cm)</option>
@@ -81,9 +86,11 @@ export default function FilterBar({
               onChange={(e) => onFilterChange('status', e.target.value)}
               className="text-xs font-bold font-heading bg-white border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-900 shadow-sm cursor-pointer"
             >
-              {STATUSES.map((st) => (
-                <option key={st.value} value={st.value}>{st.label}</option>
-              ))}
+              <option value="all">{t('filter_status_all')}</option>
+              <option value="Disponible">{t('filter_status_available')}</option>
+              <option value="En Exhibición">{t('filter_status_display')}</option>
+              <option value="Reservado">{t('filter_status_reserved')}</option>
+              <option value="Vendido">{t('filter_status_sold')}</option>
             </select>
 
             {/* Sort Order */}
@@ -92,11 +99,11 @@ export default function FilterBar({
               onChange={(e) => onFilterChange('sortBy', e.target.value)}
               className="text-xs font-bold font-heading bg-white border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-900 shadow-sm cursor-pointer"
             >
-              <option value="newest">✨ Destacadas / Recientes</option>
-              <option value="price-asc">💵 Precio: Menor a Mayor</option>
-              <option value="price-desc">💰 Precio: Mayor a Menor</option>
-              <option value="name-asc">🔤 Nombre: A - Z</option>
-              <option value="name-desc">🔤 Nombre: Z - A</option>
+              <option value="newest">{t('filter_sort_featured')}</option>
+              <option value="price-asc">{t('filter_sort_price_asc')}</option>
+              <option value="price-desc">{t('filter_sort_price_desc')}</option>
+              <option value="name-asc">{t('filter_sort_name_asc')}</option>
+              <option value="name-desc">{t('filter_sort_name_desc')}</option>
             </select>
 
             {/* View Mode Toggle: Grid vs List */}
@@ -108,7 +115,7 @@ export default function FilterBar({
                     ? 'bg-slate-900 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Vista Cuadrícula de Exhibición"
+                title={t('filter_view_grid')}
               >
                 <LayoutGrid className="w-4 h-4" />
               </button>
@@ -119,7 +126,7 @@ export default function FilterBar({
                     ? 'bg-slate-900 text-white shadow-sm'
                     : 'text-slate-600 hover:text-slate-900'
                 }`}
-                title="Vista Tabla Técnica de Registro"
+                title={t('filter_view_list')}
               >
                 <List className="w-4 h-4" />
               </button>
@@ -134,21 +141,22 @@ export default function FilterBar({
           
           <div className="flex items-center space-x-2">
             <span className="font-mono-tech text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">
-              UNIVERSO:
+              {t('filter_universe_label')}
             </span>
-            {FRANCHISES.map((franchise) => {
-              const isActive = (filters.franchise === franchise) || (!filters.franchise && franchise === 'Todos') || (filters.franchise === 'all' && franchise === 'Todos');
+            {FRANCHISE_KEYS.map((item) => {
+              const isActive = (filters.franchise === item.value) || (!filters.franchise && item.value === 'all') || (filters.franchise === 'Todos' && item.value === 'all');
               return (
                 <button
-                  key={franchise}
-                  onClick={() => onFilterChange('franchise', franchise === 'Todos' ? 'all' : franchise)}
+                  key={item.key}
+                  onClick={() => onFilterChange('franchise', item.value)}
                   className={`btn-mechanical text-xs px-3.5 py-1.5 whitespace-nowrap transition-all ${
                     isActive
-                      ? 'bg-slate-900 text-white border-2 border-slate-900 shadow-[2px_2px_0px_rgba(225,29,72,1)]'
+                      ? 'bg-slate-900 text-white border-2 border-slate-900 shadow-[2px_2px_0px_rgba(0,0,0,1)]'
                       : 'bg-white text-slate-700 border-2 border-[#E2DDD5] hover:border-slate-800'
                   }`}
+                  style={isActive ? { borderColor: '#0F172A', boxShadow: `2px 2px 0px ${activeTheme.primaryColor}` } : {}}
                 >
-                  {franchise}
+                  {t(item.labelKey)}
                 </button>
               );
             })}
@@ -156,7 +164,7 @@ export default function FilterBar({
 
           <div className="flex items-center space-x-3 text-xs text-slate-500 whitespace-nowrap pl-4 font-mono-tech font-bold">
             <span className="text-slate-800 bg-white px-2.5 py-1 rounded-[6px_2px_6px_2px] border border-[#E2DDD5]">
-              [ {totalResults} PIEZAS ]
+              [ {totalResults} {t('filter_pieces_count')} ]
             </span>
 
             {isFiltered && (
@@ -165,7 +173,7 @@ export default function FilterBar({
                 className="inline-flex items-center space-x-1 text-xs font-bold text-rose-600 hover:text-rose-700 hover:underline"
               >
                 <RotateCcw className="w-3.5 h-3.5" />
-                <span>Restablecer</span>
+                <span>{t('filter_reset')}</span>
               </button>
             )}
           </div>
