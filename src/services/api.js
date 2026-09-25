@@ -1,4 +1,5 @@
 import { initialFigures } from '../../server/seed.js';
+import { DEFAULT_FRANCHISES, DEFAULT_BRANDS } from '../components/FilterBarData.js';
 
 const API_BASE = '/api';
 
@@ -33,7 +34,9 @@ function getLocalSettings() {
     showroomName: 'ACTION VAULT',
     showroomTagline: 'Exhibición & Catálogo de Figuras de Acción de Alta Gama',
     whatsappNumber: '+5491123456789',
-    currency: 'USD'
+    currency: 'USD',
+    franchises: DEFAULT_FRANCHISES,
+    brands: DEFAULT_BRANDS
   };
   try {
     const raw = localStorage.getItem(SETTINGS_KEY);

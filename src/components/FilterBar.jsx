@@ -1,7 +1,6 @@
 import React from 'react';
 import { Search, SlidersHorizontal, LayoutGrid, List, X, RotateCcw } from 'lucide-react';
-import { FRANCHISE_KEYS } from './HeroBanner';
-import { BRANDS, SCALES } from './FilterBarData';
+import { DEFAULT_FRANCHISES, DEFAULT_BRANDS, getFranchiseLabel, SCALES } from './FilterBarData';
 import { useTranslation } from '../i18n/LanguageContext';
 import { useAuth } from '../context/AuthContext';
 
@@ -14,7 +13,15 @@ export default function FilterBar({
   totalResults
 }) {
   const { t } = useTranslation();
-  const { activeTheme } = useAuth();
+  const { settings, activeTheme } = useAuth();
+
+  const activeFranchises = Array.isArray(settings.franchises) && settings.franchises.length > 0
+    ? settings.franchises
+    : DEFAULT_FRANCHISES;
+
+  const activeBrands = Array.isArray(settings.brands) && settings.brands.length > 0
+    ? settings.brands
+    : DEFAULT_BRANDS;
 
   const isFiltered = 
     Boolean(filters.search) || 
@@ -60,7 +67,7 @@ export default function FilterBar({
               className="text-xs font-bold font-heading bg-white border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] px-3 py-2 text-slate-800 focus:outline-none focus:border-slate-900 shadow-sm cursor-pointer"
             >
               <option value="all">{t('filter_brand_all')}</option>
-              {BRANDS.slice(1).map((brand) => (
+              {activeBrands.map((brand) => (
                 <option key={brand} value={brand}>{brand}</option>
               ))}
             </select>
@@ -143,12 +150,27 @@ export default function FilterBar({
             <span className="font-mono-tech text-[10px] font-bold text-slate-400 uppercase tracking-wider mr-1 hidden sm:inline">
               {t('filter_universe_label')}
             </span>
-            {FRANCHISE_KEYS.map((item) => {
-              const isActive = (filters.franchise === item.value) || (!filters.franchise && item.value === 'all') || (filters.franchise === 'Todos' && item.value === 'all');
+
+            {/* All Pill */}
+            <button
+              onClick={() => onFilterChange('franchise', 'all')}
+              className={`btn-mechanical text-xs px-3.5 py-1.5 whitespace-nowrap transition-all ${
+                (!filters.franchise || filters.franchise === 'all' || filters.franchise === 'Todos')
+                  ? 'bg-slate-900 text-white border-2 border-slate-900 shadow-[2px_2px_0px_rgba(0,0,0,1)]'
+                  : 'bg-white text-slate-700 border-2 border-[#E2DDD5] hover:border-slate-800'
+              }`}
+              style={(!filters.franchise || filters.franchise === 'all' || filters.franchise === 'Todos') ? { borderColor: '#0F172A', boxShadow: `2px 2px 0px ${activeTheme.primaryColor}` } : {}}
+            >
+              {t('franchise_all')}
+            </button>
+
+            {/* Dynamic Category / Franchise Pills */}
+            {activeFranchises.map((item) => {
+              const isActive = filters.franchise === item;
               return (
                 <button
-                  key={item.key}
-                  onClick={() => onFilterChange('franchise', item.value)}
+                  key={item}
+                  onClick={() => onFilterChange('franchise', item)}
                   className={`btn-mechanical text-xs px-3.5 py-1.5 whitespace-nowrap transition-all ${
                     isActive
                       ? 'bg-slate-900 text-white border-2 border-slate-900 shadow-[2px_2px_0px_rgba(0,0,0,1)]'
@@ -156,7 +178,7 @@ export default function FilterBar({
                   }`}
                   style={isActive ? { borderColor: '#0F172A', boxShadow: `2px 2px 0px ${activeTheme.primaryColor}` } : {}}
                 >
-                  {t(item.labelKey)}
+                  {getFranchiseLabel(item, t)}
                 </button>
               );
             })}

@@ -17,19 +17,22 @@ import {
   DollarSign,
   Building,
   Layers,
-  MessageSquare
+  Tag,
+  Plus,
+  Trash2
 } from 'lucide-react';
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../i18n/LanguageContext';
 import { THEME_PRESETS } from '../../context/ThemePresets';
+import { DEFAULT_FRANCHISES, DEFAULT_BRANDS, getFranchiseLabel } from '../FilterBarData';
 
 export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
-  const { token, settings, setSettings } = useAuth();
+  const { token, settings, setSettings, activeTheme } = useAuth();
   const { t } = useTranslation();
   const fileImportRef = useRef(null);
 
-  const [activeTab, setActiveTab] = useState('brand'); // 'brand' | 'theme' | 'contact' | 'data' | 'security'
+  const [activeTab, setActiveTab] = useState('brand'); // 'brand' | 'taxonomies' | 'theme' | 'contact' | 'data' | 'security'
 
   const [formData, setFormData] = useState({
     showroomName: settings.showroomName || 'ACTION VAULT',
@@ -43,14 +46,89 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
     whatsappNumber: settings.whatsappNumber || '+5491123456789',
     whatsappTemplate: settings.whatsappTemplate || 'Hello! I am interested in "{name}" ({brand} - Scale {scale}) that I saw in your ActionVault showroom.',
     currency: settings.currency || 'USD',
+    franchises: Array.isArray(settings.franchises) && settings.franchises.length > 0 ? settings.franchises : DEFAULT_FRANCHISES,
+    brands: Array.isArray(settings.brands) && settings.brands.length > 0 ? settings.brands : DEFAULT_BRANDS,
     adminPassword: '',
   });
+
+  const [newFranchiseInput, setNewFranchiseInput] = useState('');
+  const [newBrandInput, setNewBrandInput] = useState('');
 
   const [isSaving, setIsSaving] = useState(false);
   const [error, setError] = useState('');
   const [successMsg, setSuccessMsg] = useState('');
 
   if (!isOpen) return null;
+
+  // Franchise / Category Handlers
+  const handleAddFranchise = (e) => {
+    e?.preventDefault();
+    const trimmed = newFranchiseInput.trim();
+    if (!trimmed) return;
+    if (formData.franchises.some(f => f.toLowerCase() === trimmed.toLowerCase())) {
+      setError(`"${trimmed}" already exists in categories.`);
+      return;
+    }
+    setError('');
+    setFormData(prev => ({
+      ...prev,
+      franchises: [...prev.franchises, trimmed]
+    }));
+    setNewFranchiseInput('');
+  };
+
+  const handleRemoveFranchise = (indexToRemove) => {
+    if (formData.franchises.length <= 1) {
+      setError('You must keep at least one category.');
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      franchises: prev.franchises.filter((_, idx) => idx !== indexToRemove)
+    }));
+  };
+
+  const handleResetFranchises = () => {
+    setFormData(prev => ({
+      ...prev,
+      franchises: DEFAULT_FRANCHISES
+    }));
+  };
+
+  // Brand Handlers
+  const handleAddBrand = (e) => {
+    e?.preventDefault();
+    const trimmed = newBrandInput.trim();
+    if (!trimmed) return;
+    if (formData.brands.some(b => b.toLowerCase() === trimmed.toLowerCase())) {
+      setError(`"${trimmed}" already exists in brands.`);
+      return;
+    }
+    setError('');
+    setFormData(prev => ({
+      ...prev,
+      brands: [...prev.brands, trimmed]
+    }));
+    setNewBrandInput('');
+  };
+
+  const handleRemoveBrand = (indexToRemove) => {
+    if (formData.brands.length <= 1) {
+      setError('You must keep at least one brand.');
+      return;
+    }
+    setFormData(prev => ({
+      ...prev,
+      brands: prev.brands.filter((_, idx) => idx !== indexToRemove)
+    }));
+  };
+
+  const handleResetBrands = () => {
+    setFormData(prev => ({
+      ...prev,
+      brands: DEFAULT_BRANDS
+    }));
+  };
 
   const handleSubmit = async (e) => {
     e?.preventDefault();
@@ -70,6 +148,8 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
         whatsappNumber: formData.whatsappNumber,
         whatsappTemplate: formData.whatsappTemplate,
         currency: formData.currency,
+        franchises: formData.franchises,
+        brands: formData.brands
       };
 
       if (formData.adminPassword.trim()) {
@@ -99,7 +179,9 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
         exportedAt: new Date().toISOString(),
         settings: {
           showroomName: formData.showroomName,
-          currency: formData.currency
+          currency: formData.currency,
+          franchises: formData.franchises,
+          brands: formData.brands
         },
         figures: figures
       };
@@ -134,7 +216,6 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
       }
 
       if (window.confirm(`Are you sure you want to import ${figuresToImport.length} figures? This will update your catalog.`)) {
-        // Save imported figures
         for (const fig of figuresToImport) {
           try {
             await api.createFigure(fig, token);
@@ -174,8 +255,11 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
         {/* Header */}
         <div className="flex items-center justify-between px-6 py-4 border-b-2 border-slate-900 bg-[#FAF9F6]">
           <div className="flex items-center space-x-3">
-            <div className="p-2 rounded-[8px_2px_8px_2px] bg-slate-900 text-rose-500 shadow-sm">
-              <Palette className="w-5 h-5 fill-rose-500" />
+            <div 
+              className="p-2 rounded-[8px_2px_8px_2px] bg-slate-900 shadow-sm text-white"
+              style={{ color: activeTheme.primaryColor }}
+            >
+              <Palette className="w-5 h-5" />
             </div>
             <div>
               <h2 className="font-heading text-lg font-black text-slate-900 uppercase">
@@ -206,6 +290,17 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
             }`}
           >
             {t('customizer_tab_brand')}
+          </button>
+
+          <button
+            onClick={() => setActiveTab('taxonomies')}
+            className={`btn-mechanical text-xs px-3.5 py-1.5 whitespace-nowrap transition-all ${
+              activeTab === 'taxonomies'
+                ? 'bg-slate-900 text-white shadow-[2px_2px_0px_rgba(225,29,72,1)]'
+                : 'bg-white text-slate-700 border-2 border-[#E2DDD5] hover:border-slate-800'
+            }`}
+          >
+            {t('customizer_tab_taxonomies')}
           </button>
 
           <button
@@ -363,13 +458,172 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
             </div>
           )}
 
-          {/* TAB 2: THEME & COLORS */}
+          {/* TAB 2: CATEGORIES & BRANDS (TAXONOMIES) */}
+          {activeTab === 'taxonomies' && (
+            <div className="space-y-6">
+              
+              {/* Category / Franchise Manager */}
+              <div className="space-y-4 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-[#F0EBE1] pb-3 gap-2">
+                  <div>
+                    <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center space-x-1.5">
+                      <Tag className="w-4 h-4" />
+                      <span>[ 02.A // {t('customizer_tax_franchises_title')} ]</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                      {t('customizer_tax_franchises_desc')}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <span className="font-mono-tech text-[10px] font-bold text-slate-600 bg-[#FAF9F6] px-2.5 py-1 rounded border border-[#E2DDD5]">
+                      {formData.franchises.length} {t('customizer_tax_count_badge')}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleResetFranchises}
+                      className="inline-flex items-center space-x-1 text-slate-500 hover:text-rose-600 font-mono-tech text-[10px] font-bold"
+                      title="Reset to defaults"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>{t('customizer_tax_restore_defaults')}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Add Category Input */}
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={newFranchiseInput}
+                    onChange={(e) => setNewFranchiseInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddFranchise();
+                      }
+                    }}
+                    placeholder={t('customizer_tax_franchises_placeholder')}
+                    className="flex-1 px-3.5 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-bold text-xs focus:outline-none focus:border-slate-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddFranchise}
+                    className="btn-mechanical px-4 py-2 bg-slate-900 text-white text-xs flex items-center space-x-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{t('customizer_tax_add_btn')}</span>
+                  </button>
+                </div>
+
+                {/* Categories Tag Cloud */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {formData.franchises.map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-[8px_2px_8px_2px] bg-[#FAF9F6] text-slate-900 border-2 border-[#E2DDD5] font-bold text-xs group hover:border-slate-700 transition-all shadow-sm"
+                    >
+                      <span className="font-mono-tech text-[10px] text-slate-400 font-bold">#{idx + 1}</span>
+                      <span>{getFranchiseLabel(item, t)}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveFranchise(idx)}
+                        className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition-colors"
+                        title={`Delete ${item}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+              {/* Brand / Manufacturer Manager */}
+              <div className="space-y-4 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
+                <div className="flex flex-col sm:flex-row sm:items-center justify-between border-b-2 border-[#F0EBE1] pb-3 gap-2">
+                  <div>
+                    <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center space-x-1.5">
+                      <Building className="w-4 h-4" />
+                      <span>[ 02.B // {t('customizer_tax_brands_title')} ]</span>
+                    </h3>
+                    <p className="text-[11px] text-slate-500 font-medium mt-0.5">
+                      {t('customizer_tax_brands_desc')}
+                    </p>
+                  </div>
+
+                  <div className="flex items-center space-x-2">
+                    <span className="font-mono-tech text-[10px] font-bold text-slate-600 bg-[#FAF9F6] px-2.5 py-1 rounded border border-[#E2DDD5]">
+                      {formData.brands.length} {t('customizer_tax_count_badge')}
+                    </span>
+                    <button
+                      type="button"
+                      onClick={handleResetBrands}
+                      className="inline-flex items-center space-x-1 text-slate-500 hover:text-rose-600 font-mono-tech text-[10px] font-bold"
+                      title="Reset to defaults"
+                    >
+                      <RotateCcw className="w-3 h-3" />
+                      <span>{t('customizer_tax_restore_defaults')}</span>
+                    </button>
+                  </div>
+                </div>
+
+                {/* Add Brand Input */}
+                <div className="flex items-center space-x-2">
+                  <input
+                    type="text"
+                    value={newBrandInput}
+                    onChange={(e) => setNewBrandInput(e.target.value)}
+                    onKeyDown={(e) => {
+                      if (e.key === 'Enter') {
+                        e.preventDefault();
+                        handleAddBrand();
+                      }
+                    }}
+                    placeholder={t('customizer_tax_brands_placeholder')}
+                    className="flex-1 px-3.5 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] font-bold text-xs focus:outline-none focus:border-slate-900"
+                  />
+                  <button
+                    type="button"
+                    onClick={handleAddBrand}
+                    className="btn-mechanical px-4 py-2 bg-slate-900 text-white text-xs flex items-center space-x-1"
+                  >
+                    <Plus className="w-3.5 h-3.5" />
+                    <span>{t('customizer_tax_add_btn')}</span>
+                  </button>
+                </div>
+
+                {/* Brands Tag Cloud */}
+                <div className="flex flex-wrap gap-2 pt-1">
+                  {formData.brands.map((item, idx) => (
+                    <span
+                      key={idx}
+                      className="inline-flex items-center space-x-2 px-3 py-1.5 rounded-[8px_2px_8px_2px] bg-[#FAF9F6] text-slate-900 border-2 border-[#E2DDD5] font-bold text-xs group hover:border-slate-700 transition-all shadow-sm"
+                    >
+                      <span className="font-mono-tech text-[10px] text-slate-400 font-bold">#{idx + 1}</span>
+                      <span>{item}</span>
+                      <button
+                        type="button"
+                        onClick={() => handleRemoveBrand(idx)}
+                        className="text-slate-400 hover:text-rose-600 p-0.5 rounded transition-colors"
+                        title={`Delete ${item}`}
+                      >
+                        <X className="w-3.5 h-3.5" />
+                      </button>
+                    </span>
+                  ))}
+                </div>
+              </div>
+
+            </div>
+          )}
+
+          {/* TAB 3: THEME & COLORS */}
           {activeTab === 'theme' && (
             <div className="space-y-4 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
               <div className="border-b-2 border-[#F0EBE1] pb-2">
                 <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 flex items-center space-x-1.5">
                   <Palette className="w-4 h-4" />
-                  <span>[ 02 // STORE ACCENT COLOR PALETTES ]</span>
+                  <span>[ 03 // STORE ACCENT COLOR PALETTES ]</span>
                 </h3>
                 <p className="text-[11px] text-slate-500 font-medium mt-1">
                   {t('customizer_theme_accent_desc')}
@@ -408,12 +662,12 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
             </div>
           )}
 
-          {/* TAB 3: CONTACT & SALES */}
+          {/* TAB 4: CONTACT & SALES */}
           {activeTab === 'contact' && (
             <div className="space-y-4 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
               <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 border-b-2 border-[#F0EBE1] pb-2 flex items-center space-x-1.5">
                 <Phone className="w-4 h-4" />
-                <span>[ 03 // SALES CHANNELS & CURRENCY ]</span>
+                <span>[ 04 // SALES CHANNELS & CURRENCY ]</span>
               </h3>
 
               <div className="space-y-3">
@@ -471,12 +725,12 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
             </div>
           )}
 
-          {/* TAB 4: DATA & BACKUPS */}
+          {/* TAB 5: DATA & BACKUPS */}
           {activeTab === 'data' && (
             <div className="space-y-4 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
               <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 border-b-2 border-[#F0EBE1] pb-2 flex items-center space-x-1.5">
                 <Database className="w-4 h-4" />
-                <span>[ 04 // DATA BACKUPS & CATALOG MANAGEMENT ]</span>
+                <span>[ 05 // DATA BACKUPS & CATALOG MANAGEMENT ]</span>
               </h3>
 
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -554,12 +808,12 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
             </div>
           )}
 
-          {/* TAB 5: SECURITY */}
+          {/* TAB 6: SECURITY */}
           {activeTab === 'security' && (
             <div className="space-y-4 bg-white p-5 rounded-[16px_4px_16px_4px] border-2 border-[#E2DDD5]">
               <h3 className="font-mono-tech text-[11px] font-bold uppercase tracking-wider text-rose-600 border-b-2 border-[#F0EBE1] pb-2 flex items-center space-x-1.5">
                 <Lock className="w-4 h-4" />
-                <span>[ 05 // SECURITY & ADMIN PASSWORD ]</span>
+                <span>[ 06 // SECURITY & ADMIN PASSWORD ]</span>
               </h3>
 
               <div>
@@ -600,6 +854,7 @@ export default function ShowroomCustomizer({ isOpen, onClose, onSaved }) {
             onClick={handleSubmit}
             disabled={isSaving}
             className="btn-mechanical flex items-center space-x-2 px-6 py-2.5 bg-rose-600 hover:bg-slate-900 text-white text-xs shadow-[3px_3px_0px_rgba(0,0,0,1)] transition-all disabled:opacity-50"
+            style={{ backgroundColor: activeTheme.primaryColor }}
           >
             <Save className="w-4 h-4" />
             <span>{isSaving ? t('form_saving') : t('customizer_btn_save')}</span>

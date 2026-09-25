@@ -52,6 +52,28 @@ function getSettings() {
     showroomTagline: 'Exhibición & Venta de Figuras de Acción de Alta Gama',
     whatsappNumber: '+5491123456789',
     currency: 'USD',
+    franchises: [
+      'Marvel',
+      'DC Comics',
+      'Star Wars',
+      'Anime / Manga',
+      'Videojuegos',
+      'Cine / TV',
+      'Otros'
+    ],
+    brands: [
+      'Hot Toys',
+      'Bandai SH Figuarts',
+      'NECA',
+      'Kotobukiya',
+      'Mezco Toyz',
+      'Figma (Max Factory)',
+      'Iron Studios',
+      'Prime 1 Studio',
+      'Hasbro Black Series',
+      'McFarlane Toys',
+      'Otros'
+    ]
   };
 
   try {

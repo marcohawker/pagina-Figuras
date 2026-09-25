@@ -2,27 +2,12 @@ import React, { useState, useEffect } from 'react';
 import { Sparkles, ShieldCheck, Box, Award, ChevronRight, Eye, Flame, Compass, Crosshair } from 'lucide-react';
 import { useAuth } from '../context/AuthContext';
 import { useTranslation } from '../i18n/LanguageContext';
+import { DEFAULT_FRANCHISES, getFranchiseLabel } from './FilterBarData';
 
-export const FRANCHISES = [
-  'Todos',
-  'Marvel',
-  'DC Comics',
-  'Star Wars',
-  'Anime / Manga',
-  'Videojuegos',
-  'Cine / TV',
-  'Otros'
-];
-
+export const FRANCHISES = ['Todos', ...DEFAULT_FRANCHISES];
 export const FRANCHISE_KEYS = [
   { key: 'franchise_all', value: 'all', labelKey: 'franchise_all' },
-  { key: 'franchise_marvel', value: 'Marvel', labelKey: 'franchise_marvel' },
-  { key: 'franchise_dc', value: 'DC Comics', labelKey: 'franchise_dc' },
-  { key: 'franchise_starwars', value: 'Star Wars', labelKey: 'franchise_starwars' },
-  { key: 'franchise_anime', value: 'Anime / Manga', labelKey: 'franchise_anime' },
-  { key: 'franchise_videogames', value: 'Videojuegos', labelKey: 'franchise_videogames' },
-  { key: 'franchise_movies', value: 'Cine / TV', labelKey: 'franchise_movies' },
-  { key: 'franchise_others', value: 'Otros', labelKey: 'franchise_others' }
+  ...DEFAULT_FRANCHISES.map(f => ({ key: f, value: f, labelKey: f }))
 ];
 
 export default function HeroBanner({ 
@@ -33,6 +18,10 @@ export default function HeroBanner({
   const { settings, activeTheme } = useAuth();
   const { t } = useTranslation();
   const [currentIndex, setCurrentIndex] = useState(0);
+
+  const activeFranchises = Array.isArray(settings.franchises) && settings.franchises.length > 0
+    ? settings.franchises
+    : DEFAULT_FRANCHISES;
 
   useEffect(() => {
     if (featuredFigures.length <= 1) return;
@@ -120,13 +109,13 @@ export default function HeroBanner({
                 {t('hero_universes_title')}
               </span>
               <div className="flex flex-wrap gap-2">
-                {FRANCHISE_KEYS.slice(1, 6).map((item) => (
+                {activeFranchises.slice(0, 6).map((item) => (
                   <button
-                    key={item.key}
-                    onClick={() => onSelectFranchise(item.value)}
+                    key={item}
+                    onClick={() => onSelectFranchise(item)}
                     className="btn-mechanical text-xs px-3.5 py-1.5 bg-white text-slate-800 border-2 border-[#DCD3C7] hover:border-slate-900 hover:text-rose-600 transition-all shadow-[2px_2px_0px_rgba(0,0,0,0.06)]"
                   >
-                    {t(item.labelKey)}
+                    {getFranchiseLabel(item, t)}
                   </button>
                 ))}
               </div>

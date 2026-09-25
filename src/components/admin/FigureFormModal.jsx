@@ -18,8 +18,7 @@ import {
 import { api } from '../../services/api';
 import { useAuth } from '../../context/AuthContext';
 import { useTranslation } from '../../i18n/LanguageContext';
-import { FRANCHISES } from '../HeroBanner';
-import { BRANDS } from '../FilterBarData';
+import { DEFAULT_FRANCHISES, DEFAULT_BRANDS, getFranchiseLabel } from '../FilterBarData';
 
 export default function FigureFormModal({ 
   figure = null, 
@@ -31,11 +30,19 @@ export default function FigureFormModal({
   const { t } = useTranslation();
   const fileInputRef = useRef(null);
 
+  const activeFranchises = Array.isArray(settings.franchises) && settings.franchises.length > 0
+    ? settings.franchises
+    : DEFAULT_FRANCHISES;
+
+  const activeBrands = Array.isArray(settings.brands) && settings.brands.length > 0
+    ? settings.brands
+    : DEFAULT_BRANDS;
+
   const [formData, setFormData] = useState({
     name: figure?.name || '',
     character: figure?.character || '',
-    franchise: figure?.franchise || 'Marvel',
-    brand: figure?.brand || 'Hot Toys',
+    franchise: figure?.franchise || (activeFranchises[0] || 'Marvel'),
+    brand: figure?.brand || (activeBrands[0] || 'Hot Toys'),
     line: figure?.line || '',
     scale: figure?.scale || '1/6',
     height: figure?.height || '30 cm',
@@ -252,9 +259,12 @@ export default function FigureFormModal({
                   onChange={(e) => handleChange('franchise', e.target.value)}
                   className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] focus:outline-none focus:border-slate-900 font-bold text-slate-800"
                 >
-                  {FRANCHISES.slice(1).map(f => (
-                    <option key={f} value={f}>{f}</option>
+                  {activeFranchises.map(f => (
+                    <option key={f} value={f}>{getFranchiseLabel(f, t)}</option>
                   ))}
+                  {formData.franchise && !activeFranchises.includes(formData.franchise) && (
+                    <option value={formData.franchise}>{formData.franchise}</option>
+                  )}
                 </select>
               </div>
 
@@ -267,9 +277,12 @@ export default function FigureFormModal({
                   onChange={(e) => handleChange('brand', e.target.value)}
                   className="w-full px-3 py-2 bg-[#FAF9F6] border-2 border-[#E2DDD5] rounded-[8px_2px_8px_2px] focus:outline-none focus:border-slate-900 font-bold text-slate-800"
                 >
-                  {BRANDS.slice(1).map(b => (
+                  {activeBrands.map(b => (
                     <option key={b} value={b}>{b}</option>
                   ))}
+                  {formData.brand && !activeBrands.includes(formData.brand) && (
+                    <option value={formData.brand}>{formData.brand}</option>
+                  )}
                 </select>
               </div>
 

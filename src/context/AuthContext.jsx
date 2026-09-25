@@ -1,6 +1,7 @@
 import React, { createContext, useContext, useState, useEffect } from 'react';
 import { api } from '../services/api';
 import { getThemePreset } from './ThemePresets';
+import { DEFAULT_FRANCHISES, DEFAULT_BRANDS } from '../components/FilterBarData';
 
 const AuthContext = createContext();
 
@@ -22,7 +23,9 @@ export function AuthProvider({ children }) {
     accentColor: 'crimson',
     whatsappNumber: '+5491123456789',
     whatsappTemplate: 'Hello! I am interested in "{name}" ({brand} - Scale {scale}) that I saw in your ActionVault showroom.',
-    currency: 'USD'
+    currency: 'USD',
+    franchises: DEFAULT_FRANCHISES,
+    brands: DEFAULT_BRANDS
   });
 
   const isAuthenticated = Boolean(token);
@@ -36,7 +39,12 @@ export function AuthProvider({ children }) {
     try {
       const data = await api.getSettings();
       if (data) {
-        setSettings(prev => ({ ...prev, ...data }));
+        setSettings(prev => ({ 
+          ...prev, 
+          ...data,
+          franchises: Array.isArray(data.franchises) && data.franchises.length > 0 ? data.franchises : (prev.franchises || DEFAULT_FRANCHISES),
+          brands: Array.isArray(data.brands) && data.brands.length > 0 ? data.brands : (prev.brands || DEFAULT_BRANDS)
+        }));
       }
     } catch (e) {
       console.error('Error fetching settings:', e);
